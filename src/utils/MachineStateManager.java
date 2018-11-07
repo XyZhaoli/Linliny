@@ -3,11 +3,14 @@ package utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.iflytek.cloud.thirdparty.v;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.http.RequestParams;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
-import android_serialport_api.bb;
 import domain.GoodsPosition;
 import domain.MachineState;
 import uartJni.Uartjni;
@@ -99,18 +102,18 @@ public class MachineStateManager {
 		if (getMachineState().getMachineStateCode() == 0x09) {
 			String parseMachineFaultCode = parseMachineFaultCode(machineState.getMachineMalfunctionCode());
 			// TODO 此时机器处于故障状态，上报给服务器此时的状态
-			final Map<String, Object> map = new HashMap<String, Object>();
-			map.put("Fcode", machineState.getMachineMalfunctionCode() + "");
-			map.put("Fname", parseMachineFaultCode);
-			map.put("Fcontent", "参考故障名称");
-			map.put("Fresolve", "暂无");
-			map.put("Funwound", "否");
-			map.put("Mid", utils.Util.getMid());
-			new Thread() {
-				public void run() {
-					bb.doPost("http://linliny.com/dingyifeng_web/AddFailure.json", map);
-				};
-			}.start();
+//			final Map<String, Object> map = new HashMap<String, Object>();
+//			map.put("Fcode", machineState.getMachineMalfunctionCode() + "");
+//			map.put("Fname", parseMachineFaultCode);
+//			map.put("Fcontent", "参考故障名称");
+//			map.put("Fresolve", "暂无");
+//			map.put("Funwound", "否");
+//			map.put("Mid", utils.Util.getMid());
+//			new Thread() {
+//				public void run() {
+//					bb.doPost("http://linliny.com/dingyifeng_web/AddFailure.json", map);
+//				};
+//			}.start();
 		}
 	}
 

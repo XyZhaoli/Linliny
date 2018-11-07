@@ -5,6 +5,10 @@ import java.util.List;
 import org.apache.http.conn.ConnectTimeoutException;
 
 import com.bumptech.glide.Glide;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseStream;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -30,12 +34,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android_serialport_api.aa;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import domain.Goods;
 import utils.ActivityManager;
 import utils.ShoppingCarManager;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 import domain.PayforResponse;
 
@@ -70,7 +74,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 	private String yname;
 	private int zongshu;
 	private Goods currentGoods;
-	
+
 	class MyHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
@@ -117,9 +121,9 @@ public class DialogActivity extends Activity implements OnClickListener {
 		btBuyGoods.setOnClickListener(this);
 		btAddToShoppingCar.setOnClickListener(this);
 		ivCancel.setOnClickListener(this);
-		
+
 		itemYid = getIntent().getStringExtra("Yid");
-		
+
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -167,36 +171,8 @@ public class DialogActivity extends Activity implements OnClickListener {
 		case R.id.btn_cancel_goods_detils_activity:
 			if (utils.Util.isFastClick()) {
 				showProgressDialog();
-				new Thread() {
-					public void run() {
-						try {
-							// 发送商品信息给后台入库Total=0.55&Goods=222222254_0.11_2"
-							num = (String) shoppingNumber.getText();
-							// 总价
-							tol = Integer.parseInt(num) * Price;
-							goodsInfo = itemYid + "_" + Price + "_" + num;
-							// 获取微信json
-							String wx = "http://linliny.com/dingyifeng_web/AddOrd.json?Mid=" + Mid + "&Total=" + tol
-									+ "&Goods=" + itemYid + "_" + Price + "_" + num;
-							String wechatRes = bb.getHttpResult(wx);
-							// 获取支付宝json
-							String zf = "http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=" + Mid + "&Total="
-									+ tol + "&Num=" + num + "&Goods=" + itemYid + "_" + yname + "_" + Price + "_" + num;
-							String aliPayRes = bb.getHttpResult(zf);
-							utils.Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
-						} catch (ConnectTimeoutException e) {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-								}
-							});
-						}
-					};
-				}.start();
+				createQRCode();
 			}
-
 			break;
 		case R.id.button1:
 			try {
@@ -214,6 +190,39 @@ public class DialogActivity extends Activity implements OnClickListener {
 		default:
 			break;
 		}
+	}
+
+	private void createQRCode() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					HttpUtils httpUtils = new HttpUtils();
+					// 发送商品信息给后台入库Total=0.55&Goods=222222254_0.11_2"
+					num = (String) shoppingNumber.getText();
+					// 总价
+					tol = Integer.parseInt(num) * Price;
+					goodsInfo = itemYid + "_" + Price + "_" + num;
+					// 获取微信json
+					String wx = "http://linliny.com/dingyifeng_web/AddOrd.json?Mid=" + Mid + "&Total=" + tol + "&Goods="
+							+ itemYid + "_" + Price + "_" + num;
+					String wechatRes = httpUtils.sendSync(HttpMethod.GET, wx).readString();
+					// 获取支付宝json
+					String zf = "http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=" + Mid + "&Total=" + tol
+							+ "&Num=" + num + "&Goods=" + itemYid + "_" + yname + "_" + Price + "_" + num;
+					String aliPayRes = httpUtils.sendSync(HttpMethod.GET, zf).readString();
+					utils.Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
+				} catch (Exception e) {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+							VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+						}
+					});
+				}
+			}
+		});
 	}
 
 	private void setPrice(TextView tvPrice, String stringExtra) {
@@ -236,13 +245,13 @@ public class DialogActivity extends Activity implements OnClickListener {
 				for (Goods goods : fromNetWorkGoods) {
 					if (goods.getYid().equals(itemYid)) {
 						currentGoods = goods;
-						
+
 						yname = goods.getYname().replaceAll(" ", "");
 						zongshu = Integer.valueOf(goods.getZongshu());
 						// 单价
 						Price = Double.parseDouble(goods.getPrice());
 						buyGoods = new AlreadyToBuyGoods(goods, 1);
-						
+
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {

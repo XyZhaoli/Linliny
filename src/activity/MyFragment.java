@@ -4,20 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.conn.ConnectTimeoutException;
-
 import com.bumptech.glide.Glide;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,7 +38,6 @@ import android.widget.SimpleAdapter.ViewBinder;
 import android.widget.Toast;
 import android_serialport_api.PersionInfo;
 import android_serialport_api.aa;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import domain.GetGoodsJsonInfo;
@@ -71,69 +70,57 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	}
 
 	public void parseMessage(String str) {
-		try {
-			if (!TextUtils.isEmpty(str)) {
-				GetGoodsJsonInfo parseJsonWithGson = GsonUtils.parseJsonWithGson(str, GetGoodsJsonInfo.class);
-				goodsList = parseJsonWithGson.getGoodsList();
-				shoppingCarManager.setFromNetWorkGoods(goodsList);
-				List<Map<String, Object>> list = aa.listKeyMaps(str);
-				// 获取分类文字
-				PersionInfo info = (PersionInfo) getArguments().getSerializable("info");
-				String data = info.getNameString();
-				// 列表分类显示
-				for (Map<String, Object> map : list) {
-					map.put("Pic", (String) map.get("Picture"));
-					if (map.get("YTname").equals(data)) {
-						data_list.add(map);
-					} else if (data == null || data.equals("全部商品")) {
-						data_list = list;
-					}
+		if (!TextUtils.isEmpty(str)) {
+			GetGoodsJsonInfo parseJsonWithGson = GsonUtils.parseJsonWithGson(str, GetGoodsJsonInfo.class);
+			goodsList = parseJsonWithGson.getGoodsList();
+			shoppingCarManager.setFromNetWorkGoods(goodsList);
+			List<Map<String, Object>> list = aa.listKeyMaps(str);
+			// 获取分类文字
+			PersionInfo info = (PersionInfo) getArguments().getSerializable("info");
+			String data = info.getNameString();
+			// 列表分类显示
+			for (Map<String, Object> map : list) {
+				map.put("Pic", (String) map.get("Picture"));
+				if (map.get("YTname").equals(data)) {
+					data_list.add(map);
+				} else if (data == null || data.equals("全部商品")) {
+					data_list = list;
 				}
+			}
 
-				// 新建适配器
-				String[] from = { "Pic", "Yname", "Price" };
-				int[] to = { R.id.image, R.id.text, R.id.Gprice };
-				if (data_list != null) {
-					sim_adapter = new MySimpleAdapter(data_list, R.layout.item, from, to);
-					sim_adapter.setViewBinder(new ViewBinder() {
-						public boolean setViewValue(View view, Object data, String textRepresentation) {
-							// 判断是否为我们要处理的对象
-							if (view instanceof ImageView && !TextUtils.isEmpty(data.toString())) {
-								ImageView iv = (ImageView) view;
-								// 如果这个图片的URL包含+-+，那么就说明这个商品的图像有多个图片
-								String string;
-								try {
-									string = utils.Util.parseImageUrl(data.toString())[0];
-								} catch (Exception e) {
-									string = data.toString();
-								}
-								if (string != null) {
-									Glide.with(getActivity()).load(string).into(iv);
-								}
-								return true;
-							} else {
-								return false;
+			// 新建适配器
+			String[] from = { "Pic", "Yname", "Price" };
+			int[] to = { R.id.image, R.id.text, R.id.Gprice };
+			if (data_list != null) {
+				sim_adapter = new MySimpleAdapter(data_list, R.layout.item, from, to);
+				sim_adapter.setViewBinder(new ViewBinder() {
+					public boolean setViewValue(View view, Object data, String textRepresentation) {
+						// 判断是否为我们要处理的对象
+						if (view instanceof ImageView && !TextUtils.isEmpty(data.toString())) {
+							ImageView iv = (ImageView) view;
+							// 如果这个图片的URL包含+-+，那么就说明这个商品的图像有多个图片
+							String string;
+							try {
+								string = utils.Util.parseImageUrl(data.toString())[0];
+							} catch (Exception e) {
+								string = data.toString();
 							}
+							if (string != null) {
+								Glide.with(getActivity()).load(string).into(iv);
+							}
+							return true;
+						} else {
+							return false;
 						}
-					});
-					// 配置适配器
-					gview.setAdapter(sim_adapter);
-				} else {
-					if (activity != null) {
-						Toast.makeText(activity, "网络错误，请检查网络", Toast.LENGTH_SHORT).show();
-						getActivity().finish();
 					}
-				}
+				});
+				// 配置适配器
+				gview.setAdapter(sim_adapter);
 			} else {
 				if (activity != null) {
 					Toast.makeText(activity, "网络错误，请检查网络", Toast.LENGTH_SHORT).show();
 					getActivity().finish();
 				}
-			}
-		} catch (Exception e) {
-			if (activity != null) {
-				Toast.makeText(activity, "网络错误，请检查网络", Toast.LENGTH_SHORT).show();
-				getActivity().finish();
 			}
 		}
 	}
@@ -151,14 +138,18 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 		// 新建List
 		data_list = new ArrayList<Map<String, Object>>();
 		initData();
-		new Thread() {
-			public void run() {
-				try {
-					String rs = bb
-							.getHttpResult("http://linliny.com/dingyifeng_web/getshangpingchaxun1.json?Mid=" + mid);
-					if (!TextUtils.isEmpty(rs)) {
-						utils.Util.sendMessage(handler, 1, rs);
-					} else {
+		return view;
+	}
+
+	private void initData() {
+		shoppingCarManager = ShoppingCarManager.getInstence();
+		mid = utils.Util.getMid();
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, "http://linliny.com/dingyifeng_web/getshangpingchaxun1.json?Mid=" + mid,
+				new RequestCallBack<String>() {
+
+					@Override
+					public void onFailure(HttpException arg0, String arg1) {
 						getActivity().runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
@@ -167,24 +158,14 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 							}
 						});
 					}
-				} catch (ConnectTimeoutException e) {
-					// TODO Auto-generated catch block
-					handler.post(new Runnable() {
-						@Override
-						public void run() {
-							utils.Util.DisplayToast(getActivity(), "网络错误，请重试", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(getActivity(), "网络错误，请重试");
-						}
-					});
-				}
-			};
-		}.start();
-		return view;
-	}
 
-	private void initData() {
-		shoppingCarManager = ShoppingCarManager.getInstence();
-		mid = utils.Util.getMid();
+					@Override
+					public void onSuccess(ResponseInfo<String> arg0) {
+						if (!TextUtils.isEmpty(arg0.result)) {
+							utils.Util.sendMessage(handler, 1, arg0.result);
+						}
+					}
+				});
 	}
 
 	/**

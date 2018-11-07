@@ -1,6 +1,10 @@
 package activity;
 
-import org.apache.http.conn.ConnectTimeoutException;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -21,8 +25,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android_serialport_api.MyAdapter;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import utils.ActivityManager;
 import utils.VoiceUtils;
@@ -50,10 +52,13 @@ public class shebeihaoActitvty extends Activity {
 	class MyHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
-			if (msg.obj == null) {
-				Log.e("TAG", "data is null");
-			} else {
+			switch (msg.what) {
+			case GET_DDEVICES_NUM:
 				parseDevicesNum((String) msg.obj);
+				break;
+
+			default:
+				break;
 			}
 		}
 	}
@@ -216,27 +221,27 @@ public class shebeihaoActitvty extends Activity {
 			public void onClick(View v) {
 				Mid = myCourse_roomId_input.getText().toString();
 				if (!TextUtils.isEmpty(Mid)) {
-					new Thread() {
-						public void run() {
-							String shebei;
-							try {
-								shebei = bb.getHttpResult(
-										"http://linliny.com/dingyifeng_web/ByMidQueryMachine1.json?Mid=" + Mid);
-								Message message = Message.obtain();
-								message.obj = shebei;
-								handler.sendMessage(message);
-							} catch (ConnectTimeoutException e) {
-								runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-										VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-									}
-								});
-								e.printStackTrace();
+					String url = "http://linliny.com/dingyifeng_web/ByMidQueryMachine1.json?Mid=" + Mid;
+					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+						@Override
+						public void onFailure(HttpException arg0, String arg1) {
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+								}
+							});
+						}
+
+						@Override
+						public void onSuccess(ResponseInfo<String> arg0) {
+							if(!TextUtils.isEmpty(arg0.result)) {
+								utils.Util.sendMessage(handler, GET_DDEVICES_NUM, arg0.result);
 							}
-						};
-					}.start();
+						}
+					});
 				} else {
 					Toast.makeText(getApplication(), "您输入的设备为空，请重新输入", Toast.LENGTH_LONG).show();
 				}

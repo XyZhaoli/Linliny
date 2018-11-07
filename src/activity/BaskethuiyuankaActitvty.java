@@ -1,7 +1,14 @@
 package activity;
 
-import org.apache.http.conn.ConnectTimeoutException;
+import java.io.IOException;
+
 import org.json.JSONObject;
+
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -11,11 +18,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.GoodsPosition;
@@ -23,6 +28,7 @@ import uartJni.UartJniCard;
 import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 /**
@@ -104,39 +110,33 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 	}
 
 	public void returnBasketMoney() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				if (!TextUtils.isEmpty(cardCode) && !TextUtils.isEmpty(BasketCode)) {
+				if (!TextUtils.isEmpty(BasketCode)) {
 					String url = "http://linliny.com/returnBasket.json?gid=" + gid + "&phone=&Frid=" + BasketCode
 							+ "&mid=" + mid + "&cardSerial=" + cardCode;
+					HttpUtils httpUtils = new HttpUtils();
 					try {
-						String httpResult = bb.getHttpResult(url);
+						String httpResult = httpUtils.sendSync(HttpMethod.GET, url).readString();
 						if (!TextUtils.isEmpty(httpResult)) {
 							VoiceUtils.getInstance().initmTts(mContext, "还篮子成功,请注意微信商城退款通知");
 							ActivityManager.getInstance().finshAllActivity();
-							runOnUiThread(new Runnable() {
-
-								@Override
-								public void run() {
-									BaskethuiyuankaActitvty.this.finish();
-									startActivity(new Intent(mContext, SplashActivity.class));
-								}
-							});
+							startActivity(new Intent(mContext, SplashActivity.class));
 						}
-					} catch (ConnectTimeoutException e) {
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								utils.Util.DisplayToast(mContext, "网络错误, 退款失败，请联系客服", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts(mContext, "网络错误, 退款失败，请联系客服");
-							}
-						});
+					} catch (HttpException e) {
+						e.printStackTrace();
+						httpGetFail();
+						sendOutBasketCmd();
+						// TODO 这个时候注意将篮子退还出来
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
+
 			}
-		}.start();
+		});
+
 	}
 
 	public void checkCardIsMembership(String string) {
@@ -162,21 +162,6 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 			isHaveCardCode = true;
 			break;
 		}
-//		if (gid >= 1 && gid <= 16) {
-//			cardCode = serialCode;
-//			showAlertDialog(BaskethuiyuankaActitvty.this, "提示");
-//			VoiceUtils.getInstance().initmTts(mContext, "请您将篮子放置在感应区");
-//			isHaveCardCode = true;
-//		} else if (gid == 0) {
-//			VoiceUtils.getInstance().initmTts(mContext, "机器格子不足，请您稍后再来");
-//			utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
-//		} else if (gid == -1) {
-//			VoiceUtils.getInstance().initmTts(mContext, "会员卡不存在");
-//			utils.Util.DisplayToast(mContext, "会员卡不存在", R.drawable.smile);
-//		} else if (gid == -2) {
-//			VoiceUtils.getInstance().initmTts(mContext, "您还不是我们的会员，请您前往商城注册会员");
-//			utils.Util.DisplayToast(mContext, "请您前往商城注册会员", R.drawable.smile);
-//		}
 	}
 
 	// 通过串口发送还篮子的指令
@@ -305,70 +290,56 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String uartCode) {
-		try {
-			new Thread() {
-				public void run() {
-					serialCode = uartCode;
-					if (!isHaveCardCode) {
-						// 刚开始我们不确定这个编码是不是会员卡的编码，默认将此编码认为是会员卡编码
-						String url = "http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=" + uartCode + "&mid="
-								+ mid;
-						String res;
-						try {
-							res = bb.getHttpResult(url);
-							if (!TextUtils.isEmpty(res)) {
-								utils.Util.sendMessage(handler, CHECK_CARD_IS_MEMBERSHIP, res);
-							} else {
-								runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请检查网络", R.drawable.warning);
-									}
-								});
-							}
-						} catch (ConnectTimeoutException e) {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									utils.Util.DisplayToast(mContext, "网络错误，请检查网络", R.drawable.warning);
-								}
-							});
-							e.printStackTrace();
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				serialCode = uartCode;
+				if (!isHaveCardCode) {
+					// 刚开始我们不确定这个编码是不是会员卡的编码，默认将此编码认为是会员卡编码
+					String url = "http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=" + uartCode + "&mid="
+							+ mid;
+					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+
+						@Override
+						public void onFailure(HttpException arg0, String arg1) {
+							httpGetFail();
 						}
 
-					} else {
-						// TODO 3.读取的篮子的信息传给服务器进行验证
-						// 如果我们已经获取到了会员卡的信息，这是可以默认用户此时是获取的是篮子的编码，获取篮子的RFID编码 然后将篮子的编码发送给服务器进行验证
-						try {
-							String url = "http://linliny.com/checkBasket.json?Frid=" + uartCode;
-							String res = bb.getHttpResult(url);
-							if (!TextUtils.isEmpty(res)) {
-								utils.Util.sendMessage(handler, CHECK_BASKET_RFID_CODE, res);
+						@Override
+						public void onSuccess(ResponseInfo<String> arg0) {
+							if (!TextUtils.isEmpty(arg0.result)) {
+								utils.Util.sendMessage(handler, CHECK_CARD_IS_MEMBERSHIP, arg0.result);
 							} else {
-								runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										utils.Util.str2voice(mContext, "识别错误");
-										utils.Util.DisplayToast(mContext, "识别错误", R.drawable.warning);
-									}
-								});
+								httpGetFail();
 							}
-						} catch (ConnectTimeoutException e) {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-								}
-							});
-							e.printStackTrace();
 						}
-					}
-				};
-			}.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+					});
+				} else {
+					// TODO 3.读取的篮子的信息传给服务器进行验证
+					// 如果我们已经获取到了会员卡的信息，这是可以默认用户此时是获取的是篮子的编码，获取篮子的RFID编码 然后将篮子的编码发送给服务器进行验证
+					String url = "http://linliny.com/checkBasket.json?Frid=" + uartCode;
+					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+
+						@Override
+						public void onFailure(HttpException arg0, String arg1) {
+							httpGetFail();
+						}
+
+						@Override
+						public void onSuccess(ResponseInfo<String> arg0) {
+							if (!TextUtils.isEmpty(arg0.result)) {
+								utils.Util.sendMessage(handler, CHECK_BASKET_RFID_CODE, arg0.result);
+							} else {
+								httpGetFail();
+							}
+						}
+					});
+				}
+			
+			}
+		});
 	}
 
 	private long getCardCode(byte[] fullCmd) throws Exception {
@@ -451,9 +422,9 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 		} else if (cmd[3] == 0xFF) {
 			// 此时机器未检测到篮子的编码，也就是说机器中没有篮子
 			utils.Util.sendMessage(handler, RETURN_BASKET_FAIL);
-			//TODO  后续还需要做的工作 如果篮子已经放进去了  但是乜有检测到编码，这个时候爱需要开门，用户将篮子取走
-			byte[] command = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd, Integer.valueOf("0E", 16),
-					gid);
+			// TODO 后续还需要做的工作 如果篮子已经放进去了 但是乜有检测到编码，这个时候爱需要开门，用户将篮子取走
+			byte[] command = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd,
+					Integer.valueOf("0E", 16), gid);
 			mUartNative.UartWriteCmd(command, command.length);
 		} else if (cmd[1] == 0x0E) {
 			utils.Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
@@ -464,7 +435,8 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 	 * 发送获取机器篮子编码的命令
 	 */
 	protected void sendGetMachineBasketCodeCmd() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(2000);
@@ -474,8 +446,8 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
 				utils.Util.delay(100);
 				mUartNative.UartWriteCmd(cmd, cmd.length);
-			};
-		}.start();
+			}
+		});
 	}
 
 	protected void parseMachineStateCode(byte cmd) {
@@ -520,4 +492,48 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 		// TODO Auto-generated method stub
 
 	}
+	
+	private void httpGetFail() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				utils.Util.DisplayToast(mContext, "网络错误，请联系客服", R.drawable.warning);
+				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+			}
+		});
+	}
+	
+	// 还篮子失败的时候，我们发送出货命令，将篮子退换出来
+		public void sendOutBasketCmd() {
+			ThreadManager.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					int cycleCount = 0;
+					// 查询机器状态
+					while (MachineSateCode != 1) {
+						// 判断机器此时的状态
+						byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
+						mUartNative.UartWriteCmd(cmd, cmd.length);
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						if (cycleCount++ > 40) {
+							VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
+							return;
+						}
+					}
+					// 延时100毫秒
+					utils.Util.delay(100);
+					String baseketLocation = "0E-" + gid;
+					String[] rowAndColumnStr = baseketLocation.split("-");
+					GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
+							Integer.parseInt(rowAndColumnStr[1]));
+					byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd,
+							basketPosition.getRowNum(), basketPosition.getColumnNum());
+					mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+				}
+			});
+		}
 }

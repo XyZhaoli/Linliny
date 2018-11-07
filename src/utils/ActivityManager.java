@@ -43,8 +43,10 @@ public class ActivityManager {
 		if (activities.size() == 0) {
 			return;
 		} else {
-			for (Activity activity : activities) {
-				activity.finish();
+			for(int i = 0; i < activities.size(); i ++) {
+				if (!activities.get(i).isDestroyed()) {
+					activities.get(i).finish();
+				}
 			}
 		}
 	}

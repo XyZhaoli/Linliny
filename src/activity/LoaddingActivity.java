@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.http.conn.ConnectTimeoutException;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.content.Context;
 import android.content.Intent;
@@ -15,7 +17,6 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.TextView;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.Goods;
@@ -24,6 +25,7 @@ import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
 import utils.ShoppingCarManager;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 public class LoaddingActivity extends BaseAcitivity {
@@ -209,7 +211,8 @@ public class LoaddingActivity extends BaseAcitivity {
 
 	protected void removeInventory() {
 		// TODO 支付成功的时候 我们要准备出货
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				// 减库存,测试时关闭减库存
 				String url = null;
@@ -224,24 +227,20 @@ public class LoaddingActivity extends BaseAcitivity {
 					url = "http://linliny.com/dingyifeng_web/shanchukuncuntion.json?model=&request=&MiD=" + mid
 							+ "&Ono=" + membershipPayforCode;
 				}
+				HttpUtils httpUtils = new HttpUtils();
 				try {
-					bb.getHttpResult(url);
-				} catch (ConnectTimeoutException e) {
-					try {
-						bb.getHttpResult(url);
-					} catch (ConnectTimeoutException e1) {
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								utils.Util.DisplayToast(mContext, "网络错误，请检查网络", R.drawable.warning);
-							}
-						});
-						e1.printStackTrace();
-					}
+					httpUtils.sendSync(HttpMethod.GET, url);
+				} catch (HttpException e) {
 					e.printStackTrace();
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							utils.Util.DisplayToast(mContext, "网络错误，请检查网络", R.drawable.warning);
+						}
+					});
 				}
-			};
-		}.start();
+			}
+		});
 	}
 
 	@Override
@@ -266,7 +265,8 @@ public class LoaddingActivity extends BaseAcitivity {
 		mid = utils.Util.getMid();
 		shoppingCarManager = ShoppingCarManager.getInstence();
 		parseGoodsInfo(getIntent().getStringExtra("goodsInfo"));
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					shipmentCount = 0;
@@ -318,8 +318,8 @@ public class LoaddingActivity extends BaseAcitivity {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			};
-		}.start();
+			}
+		});
 	}
 
 	private void parseGoodsInfo(String goodsInfo) {

@@ -1,20 +1,23 @@
 package activity;
 
+import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONObject;
 
-import com.iflytek.cloud.thirdparty.v;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -24,8 +27,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.GoodsPosition;
@@ -36,6 +37,7 @@ import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
 import utils.MachineStateManager;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 @SuppressLint({ "NewApi", "HandlerLeak" })
@@ -91,8 +93,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 
 	private void initData() {
 		ActivityManager.getInstance().addActivity(BasketShoujiActitvty.this);
-		SharedPreferences preferences = getSharedPreferences("userInfo", MODE_PRIVATE);
-		mid = preferences.getString("Mid", "");
+		mid = utils.Util.getMid();
 	}
 
 	private void initView() {
@@ -142,7 +143,6 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 
 				case (byte) 0xff:
 					// 指令不完整
-					message.what = RETURN_BASKET_FAIL;
 					break;
 				case 0x10:
 					// 这是查询机器状态的指令
@@ -173,17 +173,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 
 			case CHECK_PHONE_IS_MEMBERSHIP:
 				// 2.收到如果确认有此会员，弹窗提示请将篮子放置在感应区,然后我们的editText会获取到篮子的编码，然后得到篮子的编码
-				gid = parseJson(msg.obj.toString(), "gid");
-				if (gid >= 1 && gid <= 16) {
-					showAlertDialog(BasketShoujiActitvty.this, "提示");
-					VoiceUtils.getInstance().initmTts(mContext, "请您将篮子放置在感应区");
-				} else if (gid == 0) {
-					VoiceUtils.getInstance().initmTts(mContext, "机器格子不足，请您稍后再来");
-					utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
-				} else if (gid == -1) {
-					VoiceUtils.getInstance().initmTts(mContext, "您还不是我们的会员，请您前往商城注册会员");
-					utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员", R.drawable.smile);
-				}
+				checkResonse(msg.obj.toString());
 				break;
 
 			case GET_BASKET_LOCATION:
@@ -214,6 +204,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 				// 这个时候还篮子失败，通知服务器
 				utils.Util.DisplayToast(mContext, "还篮子失败", R.drawable.fail);
 				VoiceUtils.getInstance().initmTts(mContext, "还篮子失败，请您将篮子正确放入机器中");
+				sendOutBasketCmd();
 				break;
 			case RETURN_BASKET_SUCCESS:
 				// TODO 还篮子成功以后 通知服务器退款
@@ -230,7 +221,8 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 
 	// 通过串口发送还篮子的指令
 	public void sendReturnBasketCmd() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				int cycleCount = 0;
 				// 查询机器状态
@@ -239,18 +231,17 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 					byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
 					mUartNative.UartWriteCmd(cmd, cmd.length);
 					try {
-						Thread.sleep(4000);
+						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					if (cycleCount++ > 20) {
-						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器正忙，付款失败，请您稍后再试");
+					if (cycleCount++ > 40) {
+						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
 						return;
 					}
 				}
 				// 延时100毫秒
 				utils.Util.delay(100);
-
 				String baseketLocation = "0E-" + gid;
 				String[] rowAndColumnStr = baseketLocation.split("-");
 				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
@@ -258,37 +249,51 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_return_basket_cmd,
 						basketPosition.getRowNum(), basketPosition.getColumnNum());
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
-			};
-		}.start();
+			}
+		});
+	}
+
+	public void checkResonse(String string) {
+		gid = parseJson(string, "gid");
+		if (gid >= 1 && gid <= 16) {
+			showAlertDialog(BasketShoujiActitvty.this, "提示");
+			VoiceUtils.getInstance().initmTts(mContext, "请您将篮子放置在感应区");
+		} else if (gid == 0) {
+			VoiceUtils.getInstance().initmTts(mContext, "机器格子不足，请您稍后再来");
+			utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
+		} else if (gid == -1) {
+			VoiceUtils.getInstance().initmTts(mContext, "您还不是我们的会员，请您前往商城注册会员");
+			utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员", R.drawable.smile);
+		}
 	}
 
 	public void returnBasketMoney() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				if (!TextUtils.isEmpty(BasketCode)) {
-					// TODO
 					String url = "http://linliny.com/returnBasket.json?gid=" + gid + "&phone=" + phoneNum + "&Frid="
 							+ BasketCode + "&mid=" + mid + "&cardSerial=";
+					HttpUtils httpUtils = new HttpUtils();
 					try {
-						String httpResult = bb.getHttpResult(url);
-						if(!TextUtils.isEmpty(httpResult)) {
+						String httpResult = httpUtils.sendSync(HttpMethod.GET, url).readString();
+						if (!TextUtils.isEmpty(httpResult)) {
 							VoiceUtils.getInstance().initmTts(mContext, "还篮子成功,请注意微信商城退款通知");
 							ActivityManager.getInstance().finshAllActivity();
 							startActivity(new Intent(mContext, SplashActivity.class));
 						}
-					} catch (ConnectTimeoutException e) {
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								utils.Util.DisplayToast(mContext, "网络错误，请联系客服", R.drawable.warning);
-							}
-						});
+					} catch (HttpException e) {
+						e.printStackTrace();
+						httpGetFail();
+						sendOutBasketCmd();
+						// TODO 这个时候注意将篮子退还出来
+					} catch (IOException e) {
 						e.printStackTrace();
 					}
 				}
+
 			}
-		}.start();
+		});
 	}
 
 	public int parseJson(String string, String key) {
@@ -304,49 +309,24 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String basketCodeStr) {
-		try {
-			new Thread() {
-				public void run() {
-					// TODO 3.读取的篮子的信息传给服务器进行验证
-					// 获取篮子的RFID编码 然后将篮子的编码发送给服务器进行验证
-					// String url = "http://linliny.com/returnBasket.json?gid=" + gid + "&phone=" +
-					// phoneNum + "&Frid="
-					// + basketCodeStr + "&mid=" + mid + "&CcardId=";
-					try {
-						SerialCode = basketCodeStr;
-						String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
-						String res = bb.getHttpResult(url);
-						if (!TextUtils.isEmpty(res)) {
-							utils.Util.sendMessage(handler, CHECK_BASKET_RFID_CODE, res);
-						} else {
-							res = bb.getHttpResult(url);
-							if (!TextUtils.isEmpty(res)) {
-								utils.Util.sendMessage(handler, CHECK_BASKET_RFID_CODE, res);
-							} else {
-								runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-										VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-									}
-								});
-							}
-						}
-					} catch (ConnectTimeoutException e) {
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-							}
-						});
-						e.printStackTrace();
-					}
-				};
-			}.start();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		SerialCode = basketCodeStr;
+		String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+				httpGetFail();
+			}
+
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				if (!TextUtils.isEmpty(arg0.result)) {
+					utils.Util.sendMessage(handler, CHECK_BASKET_RFID_CODE, arg0.result);
+				} else {
+					httpGetFail();
+				}
+			}
+		});
 	}
 
 	/**
@@ -487,7 +467,6 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 		// 完成
 		Button button2 = (Button) findViewById(R.id.btn_confirm_phonelog_activity);
 		button2.setOnClickListener(new View.OnClickListener() {
-
 			// @Override
 			public void onClick(View v) {
 				phoneNum = myCourse_roomId_input.getText().toString();
@@ -498,36 +477,25 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 						VoiceUtils.getInstance().initmTts(mContext, "手机号格式输入错误，请重新输入");
 						myCourse_roomId_input.setText("");
 					} else {
-						new Thread() {
-							public void run() {
-								// 1.我们将手机好发送给服务器，确认是否有此会员
-								try {
-									String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNum
-											+ "&CcardId=" + "&mid=" + mid;
-									String httpResult = bb.getHttpResult(url);
-									if (!TextUtils.isEmpty(httpResult)) {
-										utils.Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, httpResult);
-									} else {
-										runOnUiThread(new Runnable() {
-											@Override
-											public void run() {
-												utils.Util.DisplayToast(BasketShoujiActitvty.this, "网络错误，请检查网络",
-														R.drawable.warning);
-											}
-										});
-									}
-								} catch (ConnectTimeoutException e) {
-									runOnUiThread(new Runnable() {
-										@Override
-										public void run() {
-											utils.Util.DisplayToast(BasketShoujiActitvty.this, "网络错误，请检查网络",
-													R.drawable.warning);
-										}
-									});
-									e.printStackTrace();
+						String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNum
+								+ "&CcardId=" + "&mid=" + mid;
+						HttpUtils httpUtils = new HttpUtils();
+						httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+
+							@Override
+							public void onFailure(HttpException arg0, String arg1) {
+								httpGetFail();
+							}
+
+							@Override
+							public void onSuccess(ResponseInfo<String> arg0) {
+								if (!TextUtils.isEmpty(arg0.result)) {
+									utils.Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, arg0.result);
+								} else {
+									httpGetFail();
 								}
-							};
-						}.start();
+							}
+						});
 					}
 				}
 			}
@@ -704,6 +672,50 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	public void changeTvTime(int time) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private void httpGetFail() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				utils.Util.DisplayToast(mContext, "网络错误，请联系客服", R.drawable.warning);
+				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+			}
+		});
+	}
+
+	// 还篮子失败的时候，我们发送出货命令，将篮子退换出来
+	public void sendOutBasketCmd() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				int cycleCount = 0;
+				// 查询机器状态
+				while (MachineSateCode != 1) {
+					// 判断机器此时的状态
+					byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
+					mUartNative.UartWriteCmd(cmd, cmd.length);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					if (cycleCount++ > 40) {
+						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
+						return;
+					}
+				}
+				// 延时100毫秒
+				utils.Util.delay(100);
+				String baseketLocation = "0E-" + gid;
+				String[] rowAndColumnStr = baseketLocation.split("-");
+				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
+						Integer.parseInt(rowAndColumnStr[1]));
+				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd,
+						basketPosition.getRowNum(), basketPosition.getColumnNum());
+				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+			}
+		});
 	}
 
 }

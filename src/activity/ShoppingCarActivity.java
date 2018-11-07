@@ -2,7 +2,8 @@ package activity;
 
 import java.util.List;
 
-import org.apache.http.conn.ConnectTimeoutException;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -16,21 +17,19 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 import android_serialport_api.MyAdapterCart;
 import android_serialport_api.aa;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import utils.ActivityManager;
 import utils.ShoppingCarManager;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.OnItemClickListener {
 	public static final String BUY_GOODS_DATA = "shoppingCart";
 	private static final int WECHAT_FLAG = 1;
-	private TextView textView4;
 	// 取消按钮
 	private Button cancel;
 	// 购买按钮
@@ -70,7 +69,6 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 		String Ono = b.AlipayWXOrder(urls.getWechatUrls());
 
 		Intent intent = new Intent(ShoppingCarActivity.this, IuPayListActivity.class);
-		SharedPreferences preferences = getSharedPreferences("userInfo", MODE_PRIVATE);
 		intent.putExtra("rs", WXurl);
 		intent.putExtra("ZFurl", ZFurl);
 		intent.putExtra("outTradeNo", outTradeNo);
@@ -84,7 +82,6 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 	private void initView() {
 		cancel = (Button) findViewById(R.id.btn_cancel_shopping_car_activity);
 		final ListView listView1 = (ListView) findViewById(R.id.list1);
-		textView4 = (TextView) findViewById(R.id.tv_goods_price_shopping_car);
 		cancel.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				ShoppingCarActivity.this.finish();
@@ -100,28 +97,27 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 					Toast.makeText(ShoppingCarActivity.this, "购物车空空如也，快去添加商品到购物车里卖来吧！", Toast.LENGTH_LONG).show();
 				} else {
 					final payUrls urls = getPackageUrls();
-					new Thread() {
+					ThreadManager.getThreadPool().execute(new Runnable() {
+						@Override
 						public void run() {
-							String wechatResponse;
 							try {
-								wechatResponse = bb.getHttpResult(urls.wechatUrls);
-								String alipayReponse = bb.getHttpResult(urls.alipayUrls);
+								HttpUtils httpUtils = new HttpUtils();
+								httpUtils.configCurrentHttpCacheExpiry(1000);
+								String wechatResponse;
+								wechatResponse = httpUtils.sendSync(HttpMethod.GET, urls.wechatUrls).readString();
+								String alipayReponse = httpUtils.sendSync(HttpMethod.GET, urls.alipayUrls).readString();
 								if (!TextUtils.isEmpty(wechatResponse) && !TextUtils.isEmpty(alipayReponse)) {
 									payUrls urls = new payUrls(wechatResponse, alipayReponse);
 									utils.Util.sendMessage(handler, WECHAT_FLAG, urls);
+								} else {
+									httpGetFail();
 								}
-							} catch (ConnectTimeoutException e) {
-								// TODO Auto-generated catch block
-								runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-										VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-									}
-								});
+							} catch (Exception e) {
+								httpGetFail();
+								e.printStackTrace();
 							}
-						};
-					}.start();
+						}
+					});
 				}
 			}
 		});
@@ -209,6 +205,17 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 	public void changeTvTime(int time) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	
+	private void httpGetFail() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+			}
+		});
 	}
 
 }

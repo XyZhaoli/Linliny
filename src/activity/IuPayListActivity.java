@@ -3,9 +3,13 @@ package activity;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
-import org.apache.http.conn.ConnectTimeoutException;
-
 import com.bumptech.glide.Glide;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.RequestParams;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -27,16 +31,16 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android_serialport_api.ZXingUtils;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import uartJni.UartJniCard;
 import utils.ActivityManager;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 @SuppressLint("NewApi")
 public class IuPayListActivity extends BaseAcitivity implements OnClickListener {
 
-	private static final String TAG = "BasketShoujiActitvty";
+	private static final String TAG = "IuPayListActivity";
 	private static final String BASE_URLS = "http://linliny.com/dingyifeng_web/";
 	private static final int CHECK_MEMBERSHIP_PAYFOR = 2;
 	Handler handlerNum = new Handler();
@@ -57,71 +61,18 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	private String totalPrice;
 	private String goodsInfo;
 	private String response;
+	private static String wechatPayUrls;
+	private static String zfb;
 	private ImageView ivAlipay;
 	private ImageView ivWechat;
 	private ImageView huiyuanka;
 	private ImageView iVCancel;
-	//支付二维码
+	// 支付二维码
 	private ImageView payforBarcode;
 	private TextView tvPayforMode;
 	private TextView timerText;
 	private AlertDialog alertDialog;
 
-	//检查支付结果的线程
-	private Thread getPayResponse = new Thread() {
-		public void run() {
-			isRunning = true;
-			int i = 0;
-			while (i++ < 120) {
-				try {
-					if (tvPayforMode.getText().toString().equals("请使用微信扫描上方二维码")) {
-						String wechatPayUrls = "http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono=" + Ono;
-						response = bb.getHttpResult(wechatPayUrls);
-					} else if (tvPayforMode.getText().toString().equals("请使用支付宝扫描上方二维码")) {
-						String zfb = "http://linliny.com/dingyifeng_web/QueryOrderAli.json?outTradeNo=" + outTradeNo;
-						response = bb.getHttpResult(zfb);
-					}
-					if (!TextUtils.isEmpty(response)) {
-						Log.e(TAG, response);
-						if (response.equals("SUCCESS") || response.equals("success") || response.equals("5")) {
-							payforSuccess(response);
-							isRunning = false;
-							return;
-						}
-					}
-					if (isDestory) {
-						isRunning = false;
-						return;
-					}
-					utils.Util.delay(1000);
-				} catch (ConnectTimeoutException e) {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							utils.Util.DisplayToast(mContext, "网络超时，请重试", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-						}
-					});
-					e.printStackTrace();
-				}
-			}
-			runOnUiThread(new Runnable() {
-
-				@SuppressLint("NewApi")
-				@Override
-				public void run() {
-					if (!IuPayListActivity.this.isDestroyed()) {
-						VoiceUtils.getInstance().initmTts(getApplicationContext(), "支付失败");
-						utils.Util.DisplayToast(mContext, "支付失败", R.drawable.fail);
-					}
-				}
-			});
-			isRunning = false;
-			utils.Util.delay(10000);
-			IuPayListActivity.this.finish();
-		}
-	};
-	
 	Handler handler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
@@ -133,9 +84,12 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 					}
 				}
 				break;
-				//检查会员卡支付结果
+			// 检查会员卡支付结果
 			case CHECK_MEMBERSHIP_PAYFOR:
 				parseMembershipRes(msg.obj.toString());
+				break;
+			case 3:
+				payforBarcode.setImageBitmap(wechatPayBarcodeBitmap);
 				break;
 			default:
 				break;
@@ -157,7 +111,6 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			setIvAlpha(0.5f, 1.0f, 0.5f);
 			setTvText("支付宝");
 			// 请求网络 查询是否支付成功
-			startCheckResonse();
 			VoiceUtils.getInstance().initmTts(mContext, "请使用支付宝支付");
 			break;
 		case R.id.weixin:
@@ -167,7 +120,6 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			payforBarcode.setImageBitmap(wechatPayBarcodeBitmap);
 			setIvAlpha(1f, 0.5f, 0.5f);
 			setTvText("微信");
-			startCheckResonse();
 			break;
 		case R.id.iv_vipcard_iupaylist:
 			setIvAlpha(0.5f, 0.5f, 1f);
@@ -187,6 +139,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 
 	/**
 	 * 检查会员卡的支付结果
+	 * 
 	 * @param string
 	 */
 	protected void parseMembershipRes(String string) {
@@ -242,8 +195,6 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			}
 		});
 
-		payforBarcode.setImageBitmap(wechatPayBarcodeBitmap);
-
 		iVCancel.setOnClickListener(this);
 		ivAlipay.setOnClickListener(this);
 		ivWechat.setOnClickListener(this);
@@ -282,13 +233,72 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		VoiceUtils.getInstance().initmTts(mContext, "请使用微信支付");
 		ActivityManager.getInstance().addActivity(IuPayListActivity.this);
 		getIntentStr();
-		wechatPayBarcodeBitmap = ZXingUtils.createQRImage(wechatUrl, 200, 200);
-		alipayPayBarcodeBitmap = ZXingUtils.createQRImage(alipayUrl, 200, 200);
+		getQRBitMap();
 	}
 
+	private void getQRBitMap() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				wechatPayBarcodeBitmap = ZXingUtils.createQRImage(wechatUrl, 200, 200);
+				alipayPayBarcodeBitmap = ZXingUtils.createQRImage(alipayUrl, 200, 200);
+				handler.sendEmptyMessage(3);
+			}
+		});
+	}
+
+	// 检查支付结果
 	protected void startCheckResonse() {
 		if (!isRunning) {
-			getPayResponse.start();
+			ThreadManager.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						isRunning = true;
+						int i = 0;
+						HttpUtils httpUtils = new HttpUtils();
+						httpUtils.configCurrentHttpCacheExpiry(1000);
+						while (i++ < 120) {
+							if (tvPayforMode.getText().toString().equals("请使用微信扫描上方二维码")) {
+								String wecatRes = httpUtils.sendSync(HttpMethod.GET, wechatPayUrls).readString();
+								if (!TextUtils.isEmpty(wecatRes)) {
+									Log.e(TAG, wecatRes);
+									if (wecatRes.equals("SUCCESS") || wecatRes.equals("success")
+											|| wecatRes.equals("5")) {
+										payforSuccess(wecatRes);
+										isRunning = false;
+										return;
+									}
+								}
+							} else if (tvPayforMode.getText().toString().equals("请使用支付宝扫描上方二维码")) {
+								String alipayRes = httpUtils.sendSync(HttpMethod.GET, zfb).readString();
+								if (!TextUtils.isEmpty(alipayRes)) {
+									Log.e(TAG, alipayRes);
+									if (alipayRes.equals("SUCCESS") || alipayRes.equals("success")
+											|| alipayRes.equals("5")) {
+										payforSuccess(alipayRes);
+										isRunning = false;
+										return;
+									}
+								}
+							}
+							if (isDestory) {
+								isRunning = false;
+								return;
+							}
+							utils.Util.delay(1000);
+						}
+						if (!IuPayListActivity.this.isDestroyed()) {
+							payforFail();
+						}
+						isRunning = false;
+						utils.Util.delay(10000);
+						IuPayListActivity.this.finish();
+					} catch (Exception e) {
+						payforFail();
+					}
+				}
+			});
 		}
 	}
 
@@ -307,8 +317,6 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		}
 	}
 
-	
-
 	/**
 	 * 关闭页面时销毁定时器
 	 */
@@ -323,7 +331,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		if (alertDialog != null) {
 			alertDialog.dismiss();
 		}
-		if (isRunning && getPayResponse != null) {
+		if (isRunning) {
 			isDestory = true;
 		}
 	}
@@ -331,7 +339,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (isRunning && getPayResponse != null) {
+		if (isRunning) {
 			isDestory = true;
 		}
 		if (mUartNativeCard != null) {
@@ -408,49 +416,41 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		btnConfirmPayfor.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				new Thread() {
-					public void run() {
-						// TODO 开始请求网络
-						if (!TextUtils.isEmpty(etPassword.getText().toString())) {
-							try {
-								String url = BASE_URLS + "UpdateUserCard.json?CcardId=" + code + "&Goods=" + goodsInfo
-										+ "&Mid=" + utils.Util.getMid() + "&Pwd=" + etPassword.getText().toString()
-										+ "&Total=" + totalPrice;
-								String httpResult = bb.getHttpResult(url);
-								if (!TextUtils.isEmpty(httpResult)) {
-									utils.Util.sendMessage(handler, CHECK_MEMBERSHIP_PAYFOR, httpResult);
-								} else {
-									runOnUiThread(new Runnable() {
+				// TODO 开始请求网络
+				if (!TextUtils.isEmpty(etPassword.getText().toString())) {
+					String url = BASE_URLS + "UpdateUserCard.json?CcardId=" + code + "&Goods=" + goodsInfo + "&Mid="
+							+ utils.Util.getMid() + "&Pwd=" + etPassword.getText().toString() + "&Total=" + totalPrice;
+					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 
-										@Override
-										public void run() {
-											utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-											VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-										}
-									});
-								}
-							} catch (ConnectTimeoutException e) {
-								runOnUiThread(new Runnable() {
-
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-										VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-									}
-								});
-								e.printStackTrace();
-							}
-						} else {
+						@Override
+						public void onFailure(HttpException arg0, String arg1) {
 							runOnUiThread(new Runnable() {
+
 								@Override
 								public void run() {
-									utils.Util.DisplayToast(mContext, "请输入您的密码", R.drawable.warning);
-									VoiceUtils.getInstance().initmTts(mContext, "请您重新输入密码");
+									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
 								}
 							});
 						}
-					};
-				}.start();
+
+						@Override
+						public void onSuccess(ResponseInfo<String> arg0) {
+							if (!TextUtils.isEmpty(arg0.result)) {
+								utils.Util.sendMessage(handler, CHECK_MEMBERSHIP_PAYFOR, arg0.result);
+							}
+						}
+					});
+				} else {
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							utils.Util.DisplayToast(mContext, "请输入您的密码", R.drawable.warning);
+							VoiceUtils.getInstance().initmTts(mContext, "请您重新输入密码");
+						}
+					});
+				}
 			}
 		});
 
@@ -479,9 +479,13 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 
 	public void getIntentStr() {
 		outTradeNo = getIntent().getStringExtra("outTradeNo").toString().trim();
+		zfb = "http://linliny.com/dingyifeng_web/QueryOrderAli.json?outTradeNo="
+				+ outTradeNo;
 		wechatUrl = getIntent().getStringExtra("rs").toString().trim();
 		alipayUrl = getIntent().getStringExtra("ZFurl").toString().trim();
 		Ono = getIntent().getStringExtra("Ono").toString().trim();
+		wechatPayUrls = "http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono="
+				+ Ono;
 		totalPrice = getIntent().getStringExtra("totalPrice").toString().trim();
 		goodsInfo = getIntent().getStringExtra("goodsInfo").toString().trim();
 	}
@@ -546,6 +550,16 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		if (!TextUtils.isEmpty(str)) {
 			tvPayforMode.setText(Html.fromHtml("请使用" + "<font color='#1c86ee'>" + str + "</font>" + "扫描上方二维码"));
 		}
+	}
+
+	private void payforFail() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				utils.Util.DisplayToast(mContext, "支付失败", R.drawable.warning);
+				VoiceUtils.getInstance().initmTts(mContext, "支付失败");
+			}
+		});
 	}
 
 }

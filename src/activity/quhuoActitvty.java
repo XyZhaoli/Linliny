@@ -2,18 +2,20 @@ package activity;
 
 import android.view.View;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.http.conn.ConnectTimeoutException;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.iflytek.cloud.thirdparty.i;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -29,13 +31,13 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.GoodsPosition;
 import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
+import utils.ThreadManager;
 import utils.VoiceUtils;
 
 public class quhuoActitvty extends BaseAcitivity {
@@ -220,7 +222,8 @@ public class quhuoActitvty extends BaseAcitivity {
 
 	// 发送出货命令
 	private void sendShipmentCmd() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				if (goodsPositions.size() > 0) {
 					for (GoodsPosition goodsPosition : goodsPositions) {
@@ -286,35 +289,26 @@ public class quhuoActitvty extends BaseAcitivity {
 					ActivityManager.getInstance().finshAllActivity();
 					startActivity(new Intent(quhuoActitvty.this, SplashActivity.class));
 				}
-			};
-		}.start();
+			}
+		});
 	}
 
 	private void minusInventory() {
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				if (ono != null) {
 					String url = "http://linliny.com/dingyifeng_web/shanchukuncuntion.json?model=&request=&MiD="
 							+ utils.Util.getMid() + "&Ono=" + ono;
-					String httpResult;
+					HttpUtils httpUtils = new HttpUtils();
 					try {
-						httpResult = bb.getHttpResult(url);
-					} catch (ConnectTimeoutException e) {
-						try {
-							httpResult = bb.getHttpResult(url);
-						} catch (ConnectTimeoutException e1) {
-							runOnUiThread(new Runnable() {
-
-								@Override
-								public void run() {
-									Toast.makeText(mContext, "网络错误, 减库存失败", Toast.LENGTH_LONG).show();
-								}
-							});
-						}
+						httpUtils.sendSync(HttpMethod.GET, url);
+					} catch (HttpException e) {
+						e.printStackTrace();
 					}
 				}
-			};
-		}.start();
+			}
+		});
 	}
 
 	// 显示数字键盘
@@ -446,41 +440,26 @@ public class quhuoActitvty extends BaseAcitivity {
 		btnConfirm.setOnClickListener(new View.OnClickListener() {
 			// @Override
 			public void onClick(View v) {
-				
 				final String roomId = myCourse_roomId_input.getText().toString();
 				if (!TextUtils.isEmpty(utils.Util.getMid()) && !TextUtils.isEmpty(roomId)) {
 					final String url = "http://linliny.com/dingyifeng_web/checkFCode.json?carryFruitcode=" + roomId
 							+ "&mid=" + utils.Util.getMid();
 					showProgressDialog();
-					new Thread() {
+					ThreadManager.getThreadPool().execute(new Runnable() {
+						@Override
 						public void run() {
-							String res;
+							HttpUtils httpUtils = new HttpUtils();
 							try {
-								res = bb.getHttpResult(url);
-								if (!TextUtils.isEmpty(res)) {
-									utils.Util.sendMessage(handler, TAKE_GOODS_CODE, res);
-								} else {
-									runOnUiThread(new Runnable() {
-										
-										@Override
-										public void run() {
-											utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-											VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-										}
-									});
-								}
-							} catch (ConnectTimeoutException e) {
-								runOnUiThread(new Runnable() {
-									
-									@Override
-									public void run() {
-										utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-										VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-									}
-								});
+								String res = httpUtils.sendSync(HttpMethod.GET, url).readString();
+								utils.Util.sendMessage(handler, TAKE_GOODS_CODE, res);
+							} catch (HttpException e1) {
+								e1.printStackTrace();
+								httpGetFail();
+							} catch (IOException e) {
+								e.printStackTrace();
 							}
-						};
-					}.start();
+						}
+					});
 				} else {
 					VoiceUtils.getInstance().initmTts(mContext, "请输入您的取货码");
 					utils.Util.DisplayToast(mContext, "请输入您的取货码", R.drawable.warning);
@@ -501,15 +480,14 @@ public class quhuoActitvty extends BaseAcitivity {
 		VoiceUtils.getInstance().initmTts(getApplicationContext(), string);
 	}
 
-	
 	private void showProgressDialog() {
 		dialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
-		dialog.getWindow().setDimAmount(0.3f);//设置昏暗度为0
-        dialog.setCanceledOnTouchOutside(true);
-        dialog.show();
-        dialog.getWindow().setContentView(R.layout.loading_dialog_dialog);
+		dialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
+		dialog.setCanceledOnTouchOutside(true);
+		dialog.show();
+		dialog.getWindow().setContentView(R.layout.loading_dialog_dialog);
 	}
-	
+
 	protected void parseMachineStateCode(final byte cmd, final byte arg1) {
 		switch (cmd) {
 		// 待机状态
@@ -627,4 +605,15 @@ public class quhuoActitvty extends BaseAcitivity {
 
 	}
 
+	private void httpGetFail() {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				Toast.makeText(mContext, "网络错误, 减库存失败", Toast.LENGTH_LONG).show();
+			}
+		});
+	}
+	
+	
 }

@@ -8,6 +8,11 @@ import java.util.TimerTask;
 
 import org.apache.http.conn.ConnectTimeoutException;
 
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 import com.readystatesoftware.viewbadger.BadgeView;
 
 import android.animation.AnimatorSet;
@@ -36,7 +41,6 @@ import android.widget.Toast;
 import android_serialport_api.MyAdapter;
 import android_serialport_api.PersionInfo;
 import android_serialport_api.aa;
-import android_serialport_api.bb;
 import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import uartJni.Uartjni;
@@ -271,33 +275,29 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 
 	private void initData() {
 		ActivityManager.getInstance().addActivity(GoodsDetailsActivity.this);
-		new Thread() {
-			public void run() {
-				String str = new String();
-				try {
-					str = bb.getHttpResult("http://linliny.com/dingyifeng_web/getfenzhuSan.json");
-					if (str != null) {
-						utils.Util.sendMessage(handler, 2, str);
-					} else {
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								Toast.makeText(getApplicationContext(), "网络错误", Toast.LENGTH_LONG).show();
-							}
-						});
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, "http://linliny.com/dingyifeng_web/getfenzhuSan.json", new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+						VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
 					}
-				} catch (ConnectTimeoutException e) {
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-						}
-					});
-				}
-			};
-		}.start();
+				});
+			}
 
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				if(!TextUtils.isEmpty(arg0.result)) {
+					utils.Util.sendMessage(handler, 2, arg0.result);
+				} else {
+					httpGetFail();
+				}
+			}
+		});
+		
 		COUNT_DOWN_TIME = TIME;
 		shoppingCarManager = ShoppingCarManager.getInstence();
 		countDownTimer = new Timer();
@@ -322,6 +322,16 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 				}
 			}
 		};
+	}
+
+	protected void httpGetFail() {
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+			}
+		});		
 	}
 
 	private void initBroadcast() {
