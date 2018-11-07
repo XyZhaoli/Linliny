@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="android_serialport_api.sample"
+    android:versionCode="1"
+    android:versionName="1.0" >
+
+    <uses-sdk
+        android:maxSdkVersion="21"
+        android:minSdkVersion="11"
+        android:targetSdkVersion="18" />
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+
+    <!-- 获取手机录音机使用权限，听写、识别、语义理解需要用到此权限 -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <!-- 获取当前wifi状态 -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- 读取联系人权限，上传联系人需要用到此权限 -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+    <!-- 配置权限，用来记录应用配置信息 -->
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+    <!-- 手机定位信息，用来为语义等功能提供定位，提供更精准的服务 -->
+    <!-- 定位信息是敏感信息，可通过Setting.setLocationEnable(false)关闭定位请求 -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- 如需使用人脸识别，还要添加：摄相头权限，拍照需要用到 -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <!-- 开机自启动权限 -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <supports-screens
+        android:anyDensity="true"
+        android:largeScreens="true"
+        android:normalScreens="true"
+        android:smallScreens="false" />
+
+    <application
+        android:name="application.MyApplication"
+        android:icon="@drawable/icon"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:theme="@android:style/Theme.NoTitleBar" > <!-- 去除头部标题 -->
+        <!-- 串口页面 -->
+        <activity android:name="MainMenu" >
+        </activity>
+        <activity android:name="SerialPortPreferences" >
+        </activity>
+        <activity android:name="ConsoleActivity" >
+        </activity>
+        <activity android:name="LoopbackActivity" >
+        </activity>
+        <activity android:name="Sending01010101Activity" >
+        </activity>
+
+        <!-- 主页页面滚动页面 -->
+        <activity android:name="activity.IuMainActivity" >
+        </activity>
+        <activity
+            android:name="activity.SplashActivity"
+            android:launchMode="singleTask" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.linliny" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name="activity.GoodsDetailsActivity" >
+        </activity>
+        <activity
+            android:name="activity.DialogActivity"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.IuPayActivity"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.IuPayListActivity"
+            android:launchMode="singleTop"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.ShoppingCarActivity"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.BaskethuiyuankaActitvty"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.BaskethuiyuanActitvty"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.BasketShoujiActitvty"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity android:name="activity.BasketMainActitvty" >
+        </activity>
+        <activity
+            android:name="activity.quhuoActitvty"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.shebeihaoActitvty"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+        <activity
+            android:name="activity.LoaddingActivity"
+            android:theme="@style/MyDialogStyle" >
+        </activity>
+
+        <receiver android:name="broadcastReceive.Bootreceiver" >
+            <intent-filter android:priority="1000" >
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+    </application>
+
+</manifest>

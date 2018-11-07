@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/ym_lan"
+    android:gravity="center_horizontal"
+    android:padding="40dp"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tex"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="注册会员"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp" />
+
+    <ImageView
+        android:id="@+id/ima"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_margin="20dp"
+        android:scaleType="centerCrop" />
+
+    <TextView
+        android:id="@+id/TextV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="扫码上方二维码进入邻里农园商城注册会员"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp" />
+
+</LinearLayout>

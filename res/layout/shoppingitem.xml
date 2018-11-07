@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F7F7F7"
+    android:descendantFocusability="blocksDescendants"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/shoppingName"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_marginTop="18dp"
+        android:ellipsize="marquee"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:singleLine="true"
+        android:text="商品名称"
+        android:textColor="#000000"
+        android:textSize="25sp" />
+
+    <TextView
+        android:id="@+id/shoppingPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/shoppingtotal"
+        android:layout_marginLeft="500dp"
+        android:text="价格"
+        android:textColor="#000000"
+        android:textSize="25sp" />
+
+    <ImageView
+        android:id="@+id/delete"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/delete1" />
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout1"
+        android:layout_width="140dp"
+        android:layout_height="42dp"
+        android:layout_alignBottom="@+id/delete"
+        android:layout_marginLeft="650dp"
+        android:background="@drawable/plus_minus_shape"
+        android:width="7dp"
+        android:color="#212121" >
+
+        <ImageButton
+            android:id="@+id/minus"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/minus" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_alignRight="@+id/minus"
+            android:background="#C0C0C0" />
+
+        <ImageButton
+            android:id="@+id/plus"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/plus" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:layout_alignLeft="@+id/plus"
+            android:background="#C0C0C0" />
+
+        <TextView
+            android:id="@+id/shoppingNumber"
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerInParent="true"
+            android:background="#F7F7F7"
+            android:gravity="center"
+            android:text="1"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:width="7dp"
+            android:color="#212121" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/shoppingtotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/shoppingName"
+        android:layout_alignBottom="@+id/shoppingName"
+        android:layout_marginLeft="400dp"
+        android:layout_toLeftOf="@+id/delete"
+        android:textColor="#000000"
+        android:textSize="25sp" />
+
+</RelativeLayout>

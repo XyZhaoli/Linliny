@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fillet_imageview="http://schemas.android.com/apk/res-auto"
+    xmlns:round_angle="http://schemas.android.com/apk/res-auto"
+    android:layout_width="800dp"
+    android:layout_height="1250dp" >
+
+    <view.RoundAngleLRelativeLayout
+        android:layout_width="735dp"
+        android:layout_height="1200dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/ym_bai"
+        round_angle:radius="15dp" >
+
+        <view.FilletImageView
+            android:id="@+id/iv_topic"
+            android:layout_width="735dp"
+            android:layout_height="735dp"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="#FFF"
+            android:scaleType="centerCrop"
+            fillet_imageview:cornerRadius="15dp" />
+
+        <Button
+            android:id="@+id/btn_cancel_goods_detils_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBaseline="@+id/button1"
+            android:layout_alignBottom="@+id/button1"
+            android:layout_marginBottom="10dp"
+            android:layout_marginLeft="49dp"
+            android:layout_toRightOf="@+id/button1"
+            android:background="@drawable/bt_hongxiao"
+            android:paddingBottom="20dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:paddingTop="20dp"
+            android:text=" 立即购买 "
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
+        <View
+            android:id="@+id/line"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true" />
+
+        <Button
+            android:id="@+id/button1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rl_layout"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="49dp"
+            android:layout_marginTop="50dp"
+            android:layout_toLeftOf="@+id/line"
+            android:background="@drawable/bt_huangxiao"
+            android:paddingBottom="20dp"
+            android:paddingLeft="40dp"
+            android:paddingRight="40dp"
+            android:paddingTop="20dp"
+            android:text="加入购物车"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/tv_goods_price_dialog_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/iv_topic"
+            android:layout_marginLeft="30dp"
+            android:text="￥0.01"
+            android:textColor="#FF0000"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_goods_name_dialog_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_goods_price_dialog_activity"
+            android:layout_below="@+id/tv_goods_price_dialog_activity"
+            android:layout_marginTop="10dp"
+            android:ellipsize="marquee"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:singleLine="true"
+            android:text="红心火龙果"
+            android:textColor="#000"
+            android:textSize="36sp" />
+
+        <TextView
+            android:id="@+id/tv_goods_info_dialog_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_goods_name_dialog_activity"
+            android:layout_below="@+id/tv_goods_name_dialog_activity"
+            android:layout_marginTop="10dp"
+            android:singleLine="true"
+            android:text="【火龙果】 邻里农园自家农场红心火龙果"
+            android:textColor="#000"
+            android:textSize="24sp" />
+
+        <LinearLayout
+            android:id="@+id/ll_dialog_activity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/tv_goods_info_dialog_activity"
+            android:layout_below="@+id/tv_goods_info_dialog_activity"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/tv_goods_barcode_dialog_activity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.5"
+                android:singleLine="true"
+                android:text="商品条码: hh000000"
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_goods_inventory_dialog_activity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="商品库存: 7"
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_goods_format_dialog_activity"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.2"
+                android:text="商品规格： 份"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tv_buy_num_dialog_activity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/ll_dialog_activity"
+            android:layout_below="@+id/ll_dialog_activity"
+            android:layout_marginTop="10dp"
+            android:text="购买数量"
+            android:textColor="#000"
+            android:textSize="24sp" />
+
+        <RelativeLayout
+            android:id="@+id/rl_layout"
+            android:layout_width="150dp"
+            android:layout_height="42dp"
+            android:layout_alignLeft="@+id/tv_buy_num_dialog_activity"
+            android:layout_below="@+id/tv_buy_num_dialog_activity"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/plus_minus_shape"
+            android:width="7dp"
+            android:color="#212121" >
+
+            <ImageButton
+                android:id="@+id/minus_in_goods_detils"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/minus" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_alignRight="@+id/minus_in_goods_detils"
+                android:background="#C0C0C0" />
+
+            <ImageButton
+                android:id="@+id/plus_in_goods_detils"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/plus" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="match_parent"
+                android:layout_alignLeft="@+id/plus_in_goods_detils"
+                android:background="#C0C0C0" />
+
+            <TextView
+                android:id="@+id/shoppingNumber"
+                android:layout_width="50dp"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerInParent="true"
+                android:background="#fff"
+                android:gravity="center"
+                android:text="1"
+                android:textColor="#000000"
+                android:textSize="18sp"
+                android:width="7dp"
+                android:color="#212121" />
+        </RelativeLayout>
+    </view.RoundAngleLRelativeLayout>
+
+    <ImageView
+        android:id="@+id/iv_cancel_dialogactivity"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:src="@drawable/cancel" />
+
+</RelativeLayout>

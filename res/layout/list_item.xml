@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:minHeight="100dp"
+    android:gravity="center"
+    android:orientation="vertical" >
+	<!-- android:minHeight设置每个Item的高度 -->
+    <!-- 首页左边商品分类列表 -->
+    <TextView
+        android:id="@+id/tv"
+        android:layout_width="wrap_content"
+        android:layout_height="76dp"
+        android:textColor="#ffffff"
+        android:textSize="20sp"
+        android:gravity="center"/>
+
+</LinearLayout>

@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF"
+    android:gravity="top"
+    tools:context="android_serialport_api.sample.IuMainActivity" >
+
+    <view.BannerLayout
+        android:id="@+id/banner_in_getgoods"
+        android:layout_width="match_parent"
+        android:layout_height="600dp"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        app:defaultImage="@drawable/get_goods"
+        app:indicatorMargin="20dp"
+        app:indicatorShape="oval"
+        app:indicatorSpace="2dp"
+        app:scrollDuration="1100"
+        app:selectedIndicatorColor="#00ff00"
+        app:selectedIndicatorHeight="20dp"
+        app:selectedIndicatorWidth="20dp"
+        app:titleColor="#ff0000"
+        app:unSelectedIndicatorColor="#99ffffff"
+        app:unSelectedIndicatorHeight="20dp"
+        app:unSelectedIndicatorWidth="20dp" />
+
+    <View
+        android:id="@+id/baseview_in_getgoods"
+        android:layout_width="match_parent"
+        android:layout_height="77dp"
+        android:layout_below="@+id/banner_in_getgoods"
+        android:background="@color/green" />
+
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/banner_in_getgoods"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:src="@drawable/back" />
+
+    <TextView
+        android:id="@+id/txttime"
+        android:layout_width="32dp"
+        android:layout_height="22dp"
+        android:layout_below="@+id/baseview_in_getgoods"
+        android:textColor="#FFFFFF" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/baseview_in_getgoods"
+        android:layout_marginTop="50dp"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:id="@+id/phone_log_in"
+            android:layout_width="0dp"
+            android:layout_height="350dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:background="#FFFF00"
+            android:clickable="true"
+            android:drawableTop="@drawable/phone"
+            android:gravity="center"
+            android:paddingTop="50dp"
+            android:text="手机号登陆"
+            android:textColor="#000"
+            android:textSize="36sp" />
+
+        <TextView
+            android:id="@+id/vip_log_in"
+            android:layout_width="0dp"
+            android:layout_height="350dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:background="#87CEEB"
+            android:clickable="true"
+            android:drawableTop="@drawable/vip"
+            android:gravity="center"
+            android:paddingTop="50dp"
+            android:text="会员号登陆"
+            android:textColor="#000"
+            android:textSize="36sp" />
+
+        <TextView
+            android:id="@+id/register"
+            android:layout_width="0dp"
+            android:layout_height="350dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            android:background="#FAEBD7"
+            android:clickable="true"
+            android:drawableTop="@drawable/register"
+            android:gravity="center"
+            android:paddingTop="50dp"
+            android:text="注册会员"
+            android:textColor="#000"
+            android:textSize="36sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/return_goods_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/baseview_in_getgoods"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="26dp"
+        android:textColor="#000"
+        android:textSize="24sp" />
+
+</RelativeLayout>

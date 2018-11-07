@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/relativeLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8E8E8"
+    android:orientation="vertical" >
+
+    <view.BannerLayout
+        android:id="@+id/banner2"
+        android:layout_width="match_parent"
+        android:layout_height="600dp"
+        android:layout_centerHorizontal="true"
+        app:defaultImage="@drawable/get_goods"
+        app:indicatorMargin="10dp"
+        app:indicatorShape="oval"
+        app:indicatorSpace="10dp"
+        app:scrollDuration="1100"
+        app:selectedIndicatorColor="#00ff00"
+        app:selectedIndicatorHeight="20dp"
+        app:selectedIndicatorWidth="20dp"
+        app:titleColor="#ff0000"
+        app:unSelectedIndicatorColor="#99ffffff"
+        app:unSelectedIndicatorHeight="20dp"
+        app:unSelectedIndicatorWidth="20dp" />
+
+    <View
+        android:id="@+id/baseview"
+        android:layout_width="match_parent"
+        android:layout_height="77dp"
+        android:layout_below="@+id/banner2"
+        android:background="@color/green" />
+
+    <ImageView
+        android:id="@+id/back"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_below="@+id/banner2"
+        android:layout_marginLeft="20dp"
+        android:layout_marginTop="15dp"
+        android:src="@drawable/back" />
+
+    <!-- 左边分类列表  右边显示商品 -->
+
+    <LinearLayout
+        android:id="@+id/linearLayout1"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/baseview"
+        android:background="#E8E8E8"
+        android:orientation="horizontal" >
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1.0"
+            android:gravity="center_horizontal"
+            android:orientation="vertical" >
+
+            <ListView
+                android:id="@+id/listview"
+                android:layout_width="match_parent"
+                android:layout_height="400dp"
+                android:divider="#E8E8E8"
+                android:dividerHeight="7dp"
+                android:listSelector="@drawable/list_seletor"
+                android:scrollbars="none" />
+
+            <ImageView
+                android:id="@+id/iv_arrow_goodsdetail"
+                android:layout_width="wrap_content"
+                android:layout_height="300dp"
+                android:src="@drawable/up_or_down" />
+            
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textSize="18sp"
+                android:text="上下滑动可以查看更多"/>
+        </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_margin="0dp"
+            android:layout_weight="4.0"
+            android:background="#E8E8E8"
+            android:overScrollMode="never" >
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- 底部控件 -->
+
+    <RelativeLayout
+        android:id="@+id/panelBottom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true" >
+
+        <ImageView
+            android:id="@+id/Shopping"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/shopping_bigcar" />
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/goods_detils_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/baseview"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="26dp"
+        android:textColor="#000"
+        android:textSize="24sp" />
+
+    <TextView
+        android:id="@+id/tv_time_goodsdetails_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/banner2"
+        android:layout_marginTop="15dp"
+        android:drawableLeft="@drawable/time"
+        android:gravity="center_vertical" />
+
+</RelativeLayout>

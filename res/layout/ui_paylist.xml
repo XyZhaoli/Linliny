@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="800dp"
+    android:layout_height="900dp" >
+
+    <RelativeLayout
+        android:layout_width="750dp"
+        android:layout_height="850dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/ym_bai"
+        android:padding="18dp" >
+
+        <TextView
+            android:id="@+id/timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#FF0000"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:id="@+id/iv_vipcard_iupaylist"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_alignBottom="@+id/weixin"
+            android:layout_marginLeft="40dp"
+            android:layout_toRightOf="@+id/weixin"
+            android:alpha="0.5"
+            android:scaleType="fitCenter" />
+
+        <ImageView
+            android:id="@+id/zhifubao"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_alignBottom="@+id/weixin"
+            android:layout_marginRight="40dp"
+            android:layout_toLeftOf="@+id/weixin"
+            android:alpha="0.5"
+            android:padding="5dp"
+            android:scaleType="centerCrop" />
+
+        <ImageView
+            android:id="@+id/weixin"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="20dp"
+            android:background="#FFF" />
+
+        <ImageView
+            android:id="@+id/iv_QR_code_iupaylist"
+            android:layout_width="500dp"
+            android:layout_height="500dp"
+            android:layout_below="@+id/weixin"
+            android:layout_centerHorizontal="true" />
+
+        <TextView
+            android:id="@+id/tv_payfor_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/iv_QR_code_iupaylist"
+            android:layout_centerHorizontal="true"
+            android:gravity="center"
+            android:padding="20dp"
+            android:textSize="24sp" />
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/iv_cancel_iupaylist"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/cancel" />
+
+</RelativeLayout>

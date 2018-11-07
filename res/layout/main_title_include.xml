@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" >
+
+    <view.LEDView
+        android:id="@+id/clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginLeft="80dp"
+        android:layout_marginTop="20dp"
+        android:textColor="#000"
+        android:textSize="80sp" />
+
+    <TextView
+        android:id="@+id/devices_num"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_centerVertical="true"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:text="设备号：01"
+        android:textColor="#000000"
+        android:textSize="36sp" />
+
+    <TextView
+        android:id="@+id/current_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/clock"
+        android:layout_marginLeft="80dp"
+        android:textColor="#000000"
+        android:textSize="36sp" />
+
+    <TextView
+        android:id="@+id/tv_countdown_time_main_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/devices_num"
+        android:layout_marginRight="30dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:drawableLeft="@drawable/time"
+        android:textColor="#000000"
+        android:textSize="36sp" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@+id/current_time"
+        android:layout_margin="10dp"
+        android:background="#000" />
+
+</RelativeLayout>

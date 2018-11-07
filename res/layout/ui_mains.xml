@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E8E8E8"
+    android:orientation="vertical" >
+
+    <view.BannerLayout
+        android:id="@+id/banner1"
+        android:layout_width="match_parent"
+        android:layout_height="600dp"
+        app:defaultImage="@drawable/get_goods"
+        app:indicatorMargin="10dp"
+        app:indicatorShape="oval"
+        app:indicatorSpace="10dp"
+        app:scrollDuration="1100"
+        app:selectedIndicatorColor="#00ff00"
+        app:selectedIndicatorHeight="20dp"
+        app:selectedIndicatorWidth="20dp"
+        app:titleColor="#ff0000"
+        app:unSelectedIndicatorColor="#99ffffff"
+        app:unSelectedIndicatorHeight="20dp"
+        app:unSelectedIndicatorWidth="20dp" />
+
+    <include layout="@layout/main_title_include" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
+        <include
+            android:id="@+id/layout_shopping"
+            android:layout_width="0dp"
+            android:layout_height="500dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            layout="@layout/goods_detils_shopping" />
+
+        <include
+            android:id="@+id/layout_take_goods"
+            android:layout_width="0dp"
+            android:layout_height="500dp"
+            android:layout_weight="1"
+            layout="@layout/goods_detils_take_goods" />
+
+        <include
+            android:id="@+id/layout_return"
+            android:layout_width="0dp"
+            android:layout_height="500dp"
+            android:layout_margin="10dp"
+            android:layout_weight="1"
+            layout="@layout/goods_detils_return" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tv_sofeware_version"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="bottom"
+        android:text="软件版本：" />
+
+</LinearLayout>

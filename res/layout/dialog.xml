@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/ym_bai"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
+    android:gravity="center"
+    android:orientation="vertical" >
+
+    <TextView
+        android:id="@+id/tv_title1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#73a53b"
+        android:gravity="center"
+        android:padding="20dp"
+        android:textColor="#000"
+        android:textSize="24sp" />
+
+    <FrameLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" 
+        android:gravity="center">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="700dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/remind_return_basket" />
+
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|right"
+            android:layout_marginRight="100dp"
+            android:padding="10dp"
+            android:text="请将篮子放置在感应区"
+            android:textSize="32sp" />
+
+    </FrameLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#73a53b" />
+
+    
+
+</LinearLayout>
