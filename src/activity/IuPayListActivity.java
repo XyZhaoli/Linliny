@@ -117,6 +117,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			if (wechatPayBarcodeBitmap == null) {
 				wechatPayBarcodeBitmap = ZXingUtils.createQRImage(wechatUrl, 200, 200);
 			}
+			VoiceUtils.getInstance().initmTts(mContext, "请使用微信支付");
 			payforBarcode.setImageBitmap(wechatPayBarcodeBitmap);
 			setIvAlpha(1f, 0.5f, 0.5f);
 			setTvText("微信");
@@ -292,7 +293,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 							payforFail();
 						}
 						isRunning = false;
-						utils.Util.delay(10000);
+						utils.Util.delay(5000);
 						IuPayListActivity.this.finish();
 					} catch (Exception e) {
 						payforFail();

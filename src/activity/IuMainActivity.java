@@ -55,9 +55,9 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		clockView = (TextView) findViewById(R.id.clock);
 		mTime = (TextView) findViewById(R.id.current_time);
 		shebei = (TextView) findViewById(R.id.devices_num);
-
+		
 		shebei.setText("设备号:" + utils.Util.getMid());
-
+		
 		ImageView imageView1 = (ImageView) findViewById(R.id.iv_goodsdetils_shopping);
 		ImageView ivRefundableBlueSeed = (ImageView) findViewById(R.id.iv_goodsdetils_take_goods);
 		ImageView checkout = (ImageView) findViewById(R.id.iv_goodsdetils_return);

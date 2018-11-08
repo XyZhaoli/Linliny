@@ -238,7 +238,8 @@ public class DialogActivity extends Activity implements OnClickListener {
 	private void initData() {
 		mContext = DialogActivity.this;
 		Mid = utils.Util.getMid();
-		new Thread() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
 			public void run() {
 				ActivityManager.getInstance().addActivity(DialogActivity.this);
 				fromNetWorkGoods = ShoppingCarManager.getInstence().getFromNetWorkGoods();
@@ -265,8 +266,8 @@ public class DialogActivity extends Activity implements OnClickListener {
 						});
 					}
 				}
-			};
-		}.start();
+			}
+		});
 	}
 
 	private void sendBroadcast() {

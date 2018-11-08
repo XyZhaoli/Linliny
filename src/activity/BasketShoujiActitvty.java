@@ -25,6 +25,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
@@ -70,7 +71,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	private MachineStateManager instance;
 	private MachineState machineState;
 	private String mid;
-	private TextView myCourse_roomId_input;
+	private EditText myCourse_roomId_input;
 	private String phoneNum;
 	private int gid;
 	private Dialog alertDialog;
@@ -97,7 +98,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	}
 
 	private void initView() {
-		myCourse_roomId_input = (TextView) findViewById(R.id.editText1);
+		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
 		myCourse_roomId_input.setInputType(InputType.TYPE_NULL);
 		VoiceUtils.getInstance().initmTts(this, "请输入手机号码");
 	}
@@ -477,11 +478,10 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 						VoiceUtils.getInstance().initmTts(mContext, "手机号格式输入错误，请重新输入");
 						myCourse_roomId_input.setText("");
 					} else {
-						String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNum
-								+ "&CcardId=" + "&mid=" + mid;
+						String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNum + "&CcardId="
+								+ "&mid=" + mid;
 						HttpUtils httpUtils = new HttpUtils();
 						httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
-
 							@Override
 							public void onFailure(HttpException arg0, String arg1) {
 								httpGetFail();

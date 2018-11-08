@@ -2,12 +2,9 @@ package application;
 
 import com.iflytek.cloud.SpeechConstant;
 import com.iflytek.cloud.SpeechUtility;
+import com.tencent.bugly.crashreport.CrashReport;
 
-import android.app.ActivityManager;
 import android.app.Application;
-import android.content.Context;
-import android.util.Log;
-import utils.CrashHandler;
 
 public class MyApplication extends Application {
 
@@ -20,7 +17,6 @@ public class MyApplication extends Application {
 	private void init() {
 		utils.Util.setmContext(getApplicationContext());
 		SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=5bbaf3a2");
-//		CrashHandler crashHandler = CrashHandler.getInstance();
-//		crashHandler.init(getApplicationContext());
+		CrashReport.initCrashReport(getApplicationContext(), "2f1f25f886", true); 
 	}
 }
