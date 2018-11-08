@@ -2,12 +2,8 @@ package activity;
 
 import java.util.List;
 
-import org.apache.http.conn.ConnectTimeoutException;
-
 import com.bumptech.glide.Glide;
 import com.lidroid.xutils.HttpUtils;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseStream;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
@@ -25,7 +21,6 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.AbsoluteSizeSpan;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -46,6 +41,7 @@ import domain.PayforResponse;
 public class DialogActivity extends Activity implements OnClickListener {
 
 	private static final int GET_RESPONSE = 1;
+	private static final int INIT_VIEW  = 2;
 	private Context mContext;
 	private TextView shoppingNumber;
 	private static String itemYid;
@@ -82,7 +78,10 @@ public class DialogActivity extends Activity implements OnClickListener {
 			case GET_RESPONSE:
 				parseMessage(msg);
 				break;
+			case INIT_VIEW:
+				parseGoodsInfo((Goods) msg.obj);
 
+				break;
 			default:
 				break;
 			}
@@ -98,6 +97,20 @@ public class DialogActivity extends Activity implements OnClickListener {
 		setContentView(R.layout.ui_details);
 		initView();
 		initData();
+	}
+
+	public void parseGoodsInfo(Goods goods) {
+		yname = goods.getYname().replaceAll(" ", "");
+		zongshu = Integer.valueOf(goods.getZongshu());
+		// 单价
+		Price = Double.parseDouble(goods.getPrice());
+		buyGoods = new AlreadyToBuyGoods(goods, 1);
+		tvGoodsFormat.setText("商品规格: " + goods.getCompany());// 商品规格
+		tvGoodsBarcode.setText("商品条码: " + goods.getBarCode());// 条码
+		tvGoodsInfo.setText(goods.getTitle());// 商品介绍
+		tvGoodsInventory.setText("商品库存: " + zongshu);// 库存
+		tvGoodsName.setText(goods.getYname());
+		setPrice(tvGoodsPrice, "￥" + goods.getPrice());
 	}
 
 	private void initView() {
@@ -134,7 +147,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 
 	@Override
 	public void onClick(View v) {
-		int Number = Integer.parseInt((String) shoppingNumber.getText());
+		int Number = Integer.parseInt(shoppingNumber.getText().toString());
 		switch (v.getId()) {
 		case R.id.iv_cancel_dialogactivity:
 			DialogActivity.this.finish();
@@ -184,7 +197,6 @@ public class DialogActivity extends Activity implements OnClickListener {
 				Toast.makeText(DialogActivity.this, "亲，购物车中已存在该商品哦", Toast.LENGTH_SHORT).show();
 			}
 			sendBroadcast();
-
 			break;
 
 		default:
@@ -198,6 +210,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 			public void run() {
 				try {
 					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.configCurrentHttpCacheExpiry(0 * 1000);
 					// 发送商品信息给后台入库Total=0.55&Goods=222222254_0.11_2"
 					num = (String) shoppingNumber.getText();
 					// 总价
@@ -217,7 +230,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 						@Override
 						public void run() {
 							utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+							VoiceUtils.getInstance().initmTts(getApplicationContext(), "网络错误，请重试");
 						}
 					});
 				}
@@ -246,24 +259,8 @@ public class DialogActivity extends Activity implements OnClickListener {
 				for (Goods goods : fromNetWorkGoods) {
 					if (goods.getYid().equals(itemYid)) {
 						currentGoods = goods;
-
-						yname = goods.getYname().replaceAll(" ", "");
-						zongshu = Integer.valueOf(goods.getZongshu());
-						// 单价
-						Price = Double.parseDouble(goods.getPrice());
-						buyGoods = new AlreadyToBuyGoods(goods, 1);
-
-						runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								tvGoodsFormat.setText("商品规格: " + currentGoods.getCompany());// 商品规格
-								tvGoodsBarcode.setText("商品条码: " + currentGoods.getBarCode());// 条码
-								tvGoodsInfo.setText(currentGoods.getTitle());// 商品介绍
-								tvGoodsInventory.setText("商品库存: " + zongshu);// 库存
-								tvGoodsName.setText(currentGoods.getYname());
-								setPrice(tvGoodsPrice, "￥" + currentGoods.getPrice());
-							}
-						});
+						utils.Util.sendMessage(handler, INIT_VIEW, currentGoods);
+						break;
 					}
 				}
 			}

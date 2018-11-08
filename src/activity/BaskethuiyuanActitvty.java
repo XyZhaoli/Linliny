@@ -1,11 +1,8 @@
 package activity;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android_serialport_api.ZXingUtils;
 import android_serialport_api.sample.R;
