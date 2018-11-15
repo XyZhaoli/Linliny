@@ -6,7 +6,6 @@ import java.text.DecimalFormat;
 import com.bumptech.glide.Glide;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.RequestParams;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
@@ -96,6 +95,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			}
 		};
 	};
+	private Intent mIntent;
 
 	@Override
 	public void onClick(View v) {
@@ -407,7 +407,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	}
 
 	private void showMembershipPayforDialog(final long code) {
-		VoiceUtils.getInstance().initmTts(mContext, "请输入密码");
+		VoiceUtils.getInstance().initmTts(mContext, "请输入会员卡支付密码");
 		View view = View.inflate(mContext, R.layout.menbership_card_pay_dialog, null);
 		Button btnConfirmPayfor = (Button) view.findViewById(R.id.bt_ok_membership_pay_dialog);
 		Button btnCancel = (Button) view.findViewById(R.id.bt_cancel_membership_pay_dialog);
@@ -426,14 +426,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
-							runOnUiThread(new Runnable() {
-
-								@Override
-								public void run() {
-									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-								}
-							});
+							payforFail();
 						}
 
 						@Override
@@ -479,16 +472,17 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	}
 
 	public void getIntentStr() {
-		outTradeNo = getIntent().getStringExtra("outTradeNo").toString().trim();
+		mIntent = getIntent();
+		outTradeNo = mIntent.getStringExtra("outTradeNo").toString().trim();
 		zfb = "http://linliny.com/dingyifeng_web/QueryOrderAli.json?outTradeNo="
 				+ outTradeNo;
-		wechatUrl = getIntent().getStringExtra("rs").toString().trim();
-		alipayUrl = getIntent().getStringExtra("ZFurl").toString().trim();
-		Ono = getIntent().getStringExtra("Ono").toString().trim();
+		wechatUrl = mIntent.getStringExtra("rs").toString().trim();
+		alipayUrl = mIntent.getStringExtra("ZFurl").toString().trim();
+		Ono = mIntent.getStringExtra("Ono").toString().trim();
 		wechatPayUrls = "http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono="
 				+ Ono;
-		totalPrice = getIntent().getStringExtra("totalPrice").toString().trim();
-		goodsInfo = getIntent().getStringExtra("goodsInfo").toString().trim();
+		totalPrice = mIntent.getStringExtra("totalPrice").toString().trim();
+		goodsInfo = mIntent.getStringExtra("goodsInfo").toString().trim();
 	}
 
 	public String priceFormat(String num) {

@@ -14,7 +14,7 @@ public class VoiceUtils {
 	private static VoiceUtils mVoice;
 
 	public static VoiceUtils getInstance() {
-		if(null == mVoice) {
+		if (null == mVoice) {
 			synchronized (VoiceUtils.class) {
 				if (null == mVoice) {
 					mVoice = new VoiceUtils();
@@ -100,5 +100,6 @@ public class VoiceUtils {
 		} else {
 			mTts.startSpeaking(msg, mSynthesizerListener);
 		}
+
 	}
 }

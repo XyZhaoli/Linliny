@@ -17,6 +17,6 @@ public class MyApplication extends Application {
 	private void init() {
 		utils.Util.setmContext(getApplicationContext());
 		SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=5bbaf3a2");
-		CrashReport.initCrashReport(getApplicationContext(), "2f1f25f886", true); 
+		CrashReport.initCrashReport(getApplicationContext(), "2f1f25f886", true);
 	}
 }

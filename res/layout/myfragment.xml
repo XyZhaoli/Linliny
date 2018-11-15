@@ -9,7 +9,7 @@
         android:id="@+id/gview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="18dp"
+        android:layout_margin="20dp"
         android:columnWidth="244dp"
         android:horizontalSpacing="18dp"
         android:listSelector="#00000000"

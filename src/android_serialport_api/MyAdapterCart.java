@@ -8,7 +8,6 @@ import activity.ShoppingCarActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.text.Html;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +27,13 @@ public class MyAdapterCart extends BaseAdapter implements View.OnClickListener {
 	private ShoppingCarActivity iu;
 	private List<ViewHolder> viewHolders = new ArrayList<MyAdapterCart.ViewHolder>();
 
-	private List<AlreadyToBuyGoods> buyGoods = ShoppingCarManager.getInstence().getShoppingCarGoods();
+	private List<AlreadyToBuyGoods> buyGoods = new ArrayList<AlreadyToBuyGoods>();
+
+	public MyAdapterCart() {
+		super();
+		buyGoods.clear();
+		buyGoods.addAll(ShoppingCarManager.getInstence().getShoppingCarGoods());
+	}
 
 	@Override
 	public int getCount() {
@@ -51,7 +56,7 @@ public class MyAdapterCart extends BaseAdapter implements View.OnClickListener {
 		if (context == null)
 			context = viewGroup.getContext();
 		if (view == null) {
-			view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.shoppingitem, null);
+			view = LayoutInflater.from(context).inflate(R.layout.shoppingitem, null);
 			viewHolder = new ViewHolder();
 			viewHolder.shoppingName = (TextView) view.findViewById(R.id.shoppingName);
 			viewHolder.minus = (ImageButton) view.findViewById(R.id.minus);
@@ -141,7 +146,6 @@ public class MyAdapterCart extends BaseAdapter implements View.OnClickListener {
 			public void onClick(View view) {
 				int goodsNum = buyGoods.get(position).getAlreadyToBuyGoodsnum();
 				int goodsInvertory = Integer.parseInt(buyGoods.get(position).getAleardyBuyGoods().getZongshu());
-				Log.e("goodsInvertory", goodsInvertory + "");
 				if (goodsNum < goodsInvertory) {
 					goodsNum++;
 					try {

@@ -1,5 +1,16 @@
 package utils;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.annotation.SuppressLint;
@@ -10,9 +21,10 @@ import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.widget.TextView;
-import toast.UniversalToast;
+import android.widget.Toast;
 
 /**
  * Created by ${GongWenbo} on 2018/5/18 0018.
@@ -23,6 +35,7 @@ public class Util {
 	private static long lastClickTime;
 	private static Context mContext;
 	private static String mid;
+	private static final String TAG = "Util";
 
 	public static String getMid() {
 		if (mContext != null) {
@@ -45,6 +58,53 @@ public class Util {
 
 	public static void setmContext(Context context) {
 		mContext = context;
+	}
+
+	public static boolean installBySlient(Context context, File file) {
+		boolean result = false;
+		Process process = null;
+		OutputStream out = null;
+		Log.e(TAG, "file.getPath()：" + file.getPath());
+		if (file.exists()) {
+			System.out.println(file.getPath() + "==");
+			try {
+				process = Runtime.getRuntime().exec("su");
+				out = process.getOutputStream();
+				DataOutputStream dataOutputStream = new DataOutputStream(out);
+				// 获取文件所有权限
+				dataOutputStream.writeBytes("chmod 777 " + file.getPath() + "\n");
+				// 进行静默安装命令
+				dataOutputStream.writeBytes("LD_LIBRARY_PATH=/vendor/lib:/system/lib pm install -r " + file.getPath());
+				dataOutputStream.flush();
+				// 关闭流操作
+				dataOutputStream.close();
+				out.close();
+				int value = process.waitFor();
+
+				// 代表成功
+				if (value == 0) {
+					Log.e(TAG, "安装成功！");
+					result = true;
+					// 失败
+				} else if (value == 1) {
+					Log.e(TAG, "安装失败！");
+					result = false;
+					// 未知情况
+				} else {
+					Log.e(TAG, "未知情况！");
+					result = false;
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			if (!result) {
+				Log.e(TAG, "root权限获取失败，将进行普通安装");
+				result = true;
+			}
+		}
+		return result;
 	}
 
 	public static boolean isFastClick() {
@@ -174,13 +234,17 @@ public class Util {
 	 * @param str
 	 *            所要显示的字符串
 	 * @param resID
-	 *            要显示的提示图片
+	 *            要显示的提示图片 暂时屏蔽掉这个显示自定义Toast的方法，目前这个自定义toast的显示不是很稳定
 	 */
 	public static void DisplayToast(Context context, String str, int resID) {
-		if (!((Activity) context).isFinishing()) {
-			UniversalToast.makeText(context, str, UniversalToast.LENGTH_SHORT, UniversalToast.EMPHASIZE).setIcon(resID)
-					.setGravity(Gravity.CENTER_VERTICAL, 0, 500).show();
+		Activity activity = (Activity) context;
+		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
+			return;
 		}
+		// UniversalToast.makeText(context, str, UniversalToast.LENGTH_SHORT,
+		// UniversalToast.EMPHASIZE).setIcon(resID)
+		// .setGravity(Gravity.CENTER_VERTICAL, 0, 500).show();
+		Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
 	}
 
 	/**
@@ -217,6 +281,27 @@ public class Util {
 			value = "null";
 		}
 		return value;
+	}
+
+	public static Map<String, Object> getMap(String jsonString) {
+		JSONObject jsonObject;
+		try {
+			jsonObject = new JSONObject(jsonString);
+			@SuppressWarnings("unchecked")
+			Iterator<String> keyIter = jsonObject.keys();
+			String key;
+			Object value;
+			Map<String, Object> valueMap = new HashMap<String, Object>();
+			while (keyIter.hasNext()) {
+				key = (String) keyIter.next();
+				value = jsonObject.get(key);
+				valueMap.put(key, value);
+			}
+			return valueMap;
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 }

@@ -5,9 +5,9 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:maxSdkVersion="21"
+        android:maxSdkVersion="19"
         android:minSdkVersion="11"
-        android:targetSdkVersion="18" />
+        android:targetSdkVersion="17" />
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -32,6 +32,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <!-- 开机自启动权限 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" />
 
     <supports-screens
         android:anyDensity="true"
@@ -74,6 +77,7 @@
         </activity>
         <activity
             android:name="activity.DialogActivity"
+            android:hardwareAccelerated="false"
             android:theme="@style/MyDialogStyle" >
         </activity>
         <activity
@@ -105,7 +109,8 @@
         </activity>
         <activity
             android:name="activity.quhuoActitvty"
-            android:theme="@style/MyDialogStyle" >
+            android:theme="@style/MyDialogStyle"
+            android:windowSoftInputMode="stateHidden" >
         </activity>
         <activity
             android:name="activity.shebeihaoActitvty"
@@ -115,6 +120,12 @@
             android:name="activity.LoaddingActivity"
             android:theme="@style/MyDialogStyle" >
         </activity>
+        <activity android:name="activity.ExitActivity" >
+        </activity>
+        <activity
+            android:name="com.tencent.bugly.beta.ui.BetaActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize|locale"
+            android:theme="@android:style/Theme.Translucent" />
 
         <receiver android:name="broadcastReceive.Bootreceiver" >
             <intent-filter android:priority="1000" >

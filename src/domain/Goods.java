@@ -1,8 +1,6 @@
 package domain;
 
-import java.util.List;
-
-public class Goods {
+public class Goods implements Cloneable {
 	// 商品的规格
 	private String Company;
 
@@ -36,10 +34,9 @@ public class Goods {
 	private String Did;
 	private String YTid;
 
-	
 	public Goods(String company, String barCode, String title, String odunbai, String zongshu, String yTname,
 			String yid, String price, String picture, String untiekes, String yname, String did, String yTid) {
-		
+
 		this.Company = company;
 		this.BarCode = barCode;
 		this.Title = title;
@@ -160,13 +157,15 @@ public class Goods {
 	}
 
 	@Override
+	public Goods clone() throws CloneNotSupportedException {
+		return (Goods) super.clone();
+	}
+
+	@Override
 	public String toString() {
 		return "Goods [Company=" + Company + ", BarCode=" + BarCode + ", Title=" + Title + ", Odunbai=" + Odunbai
 				+ ", zongshu=" + zongshu + ", YTname=" + YTname + ", Yid=" + Yid + ", Price=" + Price + ", Picture="
 				+ Picture + ", Untiekes=" + Untiekes + ", Yname=" + Yname + ", Did=" + Did + ", YTid=" + YTid + "]";
 	}
-	
-	
-	
 
 }

@@ -7,19 +7,32 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
+import com.iflytek.cloud.thirdparty.f;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
-import android.widget.ImageView;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android_serialport_api.sample.R;
@@ -46,6 +59,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		setContentView(R.layout.ui_mains);
 		initViews();
 		initData();
+		//downloadApk("http://linliny.com/replenishment/H53CFD024_0726141427.apk");
 	}
 
 	private void initViews() {
@@ -55,24 +69,17 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		clockView = (TextView) findViewById(R.id.clock);
 		mTime = (TextView) findViewById(R.id.current_time);
 		shebei = (TextView) findViewById(R.id.devices_num);
-		
+
 		shebei.setText("设备号:" + utils.Util.getMid());
-		
-		ImageView imageView1 = (ImageView) findViewById(R.id.iv_goodsdetils_shopping);
-		ImageView ivRefundableBlueSeed = (ImageView) findViewById(R.id.iv_goodsdetils_take_goods);
-		ImageView checkout = (ImageView) findViewById(R.id.iv_goodsdetils_return);
-		imageView1.setOnClickListener(this);
-		ivRefundableBlueSeed.setOnClickListener(this);
-		checkout.setOnClickListener(this);
+
+		findViewById(R.id.iv_goodsdetils_shopping).setOnClickListener(this);
+		findViewById(R.id.iv_goodsdetils_take_goods).setOnClickListener(this);
+		findViewById(R.id.iv_goodsdetils_return).setOnClickListener(this);
 
 		tv_sofeware_version.setOnLongClickListener(new OnLongClickListener() {
 			@Override
 			public boolean onLongClick(View v) {
-				Toast.makeText(IuMainActivity.this, "返回桌面", Toast.LENGTH_SHORT).show();
-				Intent home = new Intent(Intent.ACTION_MAIN);
-				home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-				home.addCategory(Intent.CATEGORY_HOME);
-				startActivity(home);
+				startActivity(new Intent(IuMainActivity.this, ExitActivity.class));
 				return false;
 			}
 		});
@@ -124,23 +131,16 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 	}
 
 	protected void downloadApk(String url) {
-		// apk下载链接地址,放置apk的所在路径
-
-		// 1,判断sd卡是否可用,是否挂在上
 		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-			// 2,获取sd路径
 			String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
 					+ "linlinySellApp.apk";
-			// 3,发送请求,获取apk,并且放置到指定路径
 			HttpUtils httpUtils = new HttpUtils();
-			// 4,发送请求,传递参数(下载地址,下载应用放置位置)
 			httpUtils.download(url, path, new RequestCallBack<File>() {
 				@Override
 				public void onSuccess(ResponseInfo<File> responseInfo) {
-					// 下载成功(下载过后的放置在sd卡中apk)
 					File file = responseInfo.result;
-					// 提示用户安装
-					installApk(file);
+					//installApk(file);
+					utils.Util.installBySlient(getApplicationContext(), file);
 				}
 
 				@Override
@@ -148,16 +148,15 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 					// 下载失败
 				}
 
-				// 刚刚开始下载方法
 				@Override
 				public void onStart() {
 					super.onStart();
 				}
 
-				// 下载过程中的方法(下载apk总大小,当前的下载位置,是否正在下载)
 				@Override
 				public void onLoading(long total, long current, boolean isUploading) {
 					super.onLoading(total, current, isUploading);
+					Log.e("current", current + "");
 				}
 			});
 		}
@@ -176,17 +175,13 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		startActivityForResult(intent, 0);
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void changeTvTime(int time) {
 		mTime.setText(getDateTime());
 		tvCountdownTime.setText(getTime() + "s");
 		final Date d = new Date();
 		clockView.setText(String.format(DATE_FORMAT, d.getHours(), d.getMinutes(), d.getSeconds()));
-	}
-
-	@Override
-	protected void onDestroy() {
-		super.onDestroy();
 	}
 
 	@Override

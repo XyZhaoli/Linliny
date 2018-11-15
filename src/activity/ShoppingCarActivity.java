@@ -62,11 +62,10 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 	public void parseResponse(Object obj) {
 		payUrls urls = (payUrls) obj;
 		// 解析json，获取微信支付的路径
-		aa b = new aa();
-		String WXurl = b.weixinStr(urls.getWechatUrls());
-		String ZFurl = b.AlipayStr(urls.getAlipayUrls());
-		String outTradeNo = b.AlipayOrder(urls.getAlipayUrls());
-		String Ono = b.AlipayWXOrder(urls.getWechatUrls());
+		String WXurl = aa.weixinStr(urls.getWechatUrls());
+		String ZFurl = aa.AlipayStr(urls.getAlipayUrls());
+		String outTradeNo = aa.AlipayOrder(urls.getAlipayUrls());
+		String Ono = aa.AlipayWXOrder(urls.getWechatUrls());
 
 		Intent intent = new Intent(ShoppingCarActivity.this, IuPayListActivity.class);
 		intent.putExtra("rs", WXurl);

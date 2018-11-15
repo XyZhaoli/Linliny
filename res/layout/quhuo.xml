@@ -10,15 +10,16 @@
         android:id="@+id/editText1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/plus_minus_shape"
-        android:padding="15dp"
-        android:ems="10"
-        android:textSize="32sp"
-        android:hint="请输入取货码"
         android:layout_margin="15dp"
+        android:background="@drawable/plus_minus_shape"
+        android:ems="10"
+        android:hint="请输入取货码"
         android:inputType="number"
+        android:padding="15dp"
+        android:text=""
         android:textColor="#000"
-        android:textColorHint="#03A9F4" >
+        android:textColorHint="#03A9F4"
+        android:textSize="32sp" >
 
         <requestFocus />
     </EditText>
@@ -127,8 +128,8 @@
             android:id="@+id/btn_confirm"
             android:layout_width="0dp"
             android:layout_height="122dp"
-            android:layout_weight="1"
             android:layout_margin="20dp"
+            android:layout_weight="1"
             android:background="@drawable/bt_huangxiao"
             android:text="确      认"
             android:textColor="#FFFFFF"
@@ -138,10 +139,10 @@
             android:id="@+id/btn_cancel"
             android:layout_width="0dp"
             android:layout_height="122dp"
+            android:layout_margin="20dp"
             android:layout_weight="1"
             android:background="@drawable/bt_hongxiao"
             android:text="取      消"
-            android:layout_margin="20dp"
             android:textColor="#FFFFFF"
             android:textSize="25sp" />
     </LinearLayout>

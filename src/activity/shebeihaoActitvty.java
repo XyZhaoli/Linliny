@@ -20,7 +20,7 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -29,10 +29,9 @@ import android_serialport_api.sample.R;
 import utils.ActivityManager;
 import utils.VoiceUtils;
 
-public class shebeihaoActitvty extends Activity {
+public class shebeihaoActitvty extends Activity implements OnClickListener {
 
 	private static final int GET_DDEVICES_NUM = 1;
-	private String Mid = new String();
 	EditText myCourse_roomId_input;
 	TextView number_1;
 	TextView number_2;
@@ -48,6 +47,7 @@ public class shebeihaoActitvty extends Activity {
 	ImageView number_clear_last;
 	private Context mContext = shebeihaoActitvty.this;
 	public MyHandler handler = new MyHandler();
+	private String Mid;
 
 	class MyHandler extends Handler {
 		@Override
@@ -66,11 +66,55 @@ public class shebeihaoActitvty extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.sebeihao);
-		showNumberKeyboard();
+		initView();
+		initData();
+	}
+
+	private void initData() {
 		ActivityManager.getInstance().addActivity(shebeihaoActitvty.this);
 		// 点击EditText禁止出现数字键盘
 		EditText shebeiId = (EditText) findViewById(R.id.editText1);
 		shebeiId.setInputType(InputType.TYPE_NULL);
+	}
+
+	private void initView() {
+		// 数字键盘点击监听
+		number_1 = (TextView) findViewById(R.id.number_1);
+		number_2 = (TextView) findViewById(R.id.number_2);
+		number_3 = (TextView) findViewById(R.id.number_3);
+		number_4 = (TextView) findViewById(R.id.number_4);
+		number_5 = (TextView) findViewById(R.id.number_5);
+		number_6 = (TextView) findViewById(R.id.number_6);
+		number_7 = (TextView) findViewById(R.id.number_7);
+		number_8 = (TextView) findViewById(R.id.number_8);
+		number_9 = (TextView) findViewById(R.id.number_9);
+		number_0 = (TextView) findViewById(R.id.number_0);
+
+		number_1.setOnClickListener(this);
+		number_2.setOnClickListener(this);
+		number_3.setOnClickListener(this);
+		number_4.setOnClickListener(this);
+		number_5.setOnClickListener(this);
+		number_6.setOnClickListener(this);
+		number_7.setOnClickListener(this);
+		number_8.setOnClickListener(this);
+		number_9.setOnClickListener(this);
+		number_0.setOnClickListener(this);
+
+		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);// 删除
+		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);// 文本
+
+		findViewById(R.id.btn_enter_devices_num_activity).setOnClickListener(this);
+		findViewById(R.id.btn_cancel_devices_num_activity).setOnClickListener(this);
+
+		// 长按删除键
+		number_clear_last.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				myCourse_roomId_input.setText("");
+				return false;
+			}
+		});
 	}
 
 	@SuppressLint("NewApi")
@@ -90,160 +134,93 @@ public class shebeihaoActitvty extends Activity {
 		}
 	}
 
-	// 显示数字键盘
-	public void showNumberKeyboard() {
-		// 数字键盘点击监听
-		number_1 = (TextView) findViewById(R.id.number_1);
-		number_2 = (TextView) findViewById(R.id.number_2);
-		number_3 = (TextView) findViewById(R.id.number_3);
-		number_4 = (TextView) findViewById(R.id.number_4);
-		number_5 = (TextView) findViewById(R.id.number_5);
-		number_6 = (TextView) findViewById(R.id.number_6);
-		number_7 = (TextView) findViewById(R.id.number_7);
-		number_8 = (TextView) findViewById(R.id.number_8);
-		number_9 = (TextView) findViewById(R.id.number_9);
-		number_0 = (TextView) findViewById(R.id.number_0);
-		number_enter = (TextView) findViewById(R.id.number_enter);// 重输
-		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);// 删除
-		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);// 文本
+	@Override
+	public void onClick(View v) {
+		String midStr = myCourse_roomId_input.getText().toString();
+		switch (v.getId()) {
+		case R.id.number_1:
+			myCourse_roomId_input.setText(midStr + number_1.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_2:
+			myCourse_roomId_input.setText(midStr + number_2.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_3:
+			myCourse_roomId_input.setText(midStr + number_3.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_4:
+			myCourse_roomId_input.setText(midStr + number_4.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_5:
+			myCourse_roomId_input.setText(midStr + number_5.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_6:
+			myCourse_roomId_input.setText(midStr + number_6.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_7:
+			myCourse_roomId_input.setText(midStr + number_7.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_8:
+			myCourse_roomId_input.setText(midStr + number_8.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_9:
+			myCourse_roomId_input.setText(midStr + number_9.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_0:
+			myCourse_roomId_input.setText(midStr + number_0.getText().toString());
+			myCourse_roomId_input.setSelection(midStr.length() + 1);
+			break;
+		case R.id.number_enter:
+			myCourse_roomId_input.setText("");
+			break;
+		case R.id.number_clear_last:
+			if (midStr.length() > 0) {
+				myCourse_roomId_input.setText(midStr.substring(0, midStr.length() - 1));
+				myCourse_roomId_input.setSelection(midStr.length() - 1);
+			}
+			break;
+		case R.id.btn_enter_devices_num_activity:
+			if (!TextUtils.isEmpty(midStr)) {
+				checkMidNum(midStr);
+			} else {
+				Toast.makeText(getApplication(), "您输入的设备为空，请重新输入", Toast.LENGTH_LONG).show();
+			}
+			break;
+		default:
 
-		number_1.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_1.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_2.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_2.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_3.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_3.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_4.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_4.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_5.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_5.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_6.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_6.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_7.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_7.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_8.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_8.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_9.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_9.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_0.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				// 0不能在第一位
-				if (null != roomInput && !"".equals(roomInput)) {
-					myCourse_roomId_input.setText(roomInput + number_0.getText().toString());
-					myCourse_roomId_input.setSelection(roomInput.length() + 1);
-				}
-			}
-		});
-		number_enter.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				myCourse_roomId_input.setText("");
-			}
-		});
-		number_clear_last.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomIdInput = myCourse_roomId_input.getText().toString();
-				if (roomIdInput.length() > 0) {
-					myCourse_roomId_input.setText(roomIdInput.substring(0, roomIdInput.length() - 1));
-					myCourse_roomId_input.setSelection(roomIdInput.length() - 1);
-				}
-			}
-		});
-		// 长按删除键
-		number_clear_last.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				myCourse_roomId_input.setText("");
-				return false;
-			}
-		});
-		// 完成
-		Button sure = (Button) findViewById(R.id.btn_enter_devices_num_activity);
-		sure.setOnClickListener(new View.OnClickListener() {
-			// @Override
-			public void onClick(View v) {
-				Mid = myCourse_roomId_input.getText().toString();
-				if (!TextUtils.isEmpty(Mid)) {
-					String url = "http://linliny.com/dingyifeng_web/ByMidQueryMachine1.json?Mid=" + Mid;
-					HttpUtils httpUtils = new HttpUtils();
-					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
-						@Override
-						public void onFailure(HttpException arg0, String arg1) {
-							runOnUiThread(new Runnable() {
-								@Override
-								public void run() {
-									utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-									VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
-								}
-							});
-						}
+			break;
+		}
+	}
 
-						@Override
-						public void onSuccess(ResponseInfo<String> arg0) {
-							if(!TextUtils.isEmpty(arg0.result)) {
-								utils.Util.sendMessage(handler, GET_DDEVICES_NUM, arg0.result);
-							}
-						}
-					});
-				} else {
-					Toast.makeText(getApplication(), "您输入的设备为空，请重新输入", Toast.LENGTH_LONG).show();
+	private void checkMidNum(String midStr) {
+		String url = "http://linliny.com/dingyifeng_web/ByMidQueryMachine1.json?Mid=" + midStr;
+		Log.e("url", url);
+		Mid = midStr;
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+						VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+					}
+				});
+			}
+
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				if (!TextUtils.isEmpty(arg0.result)) {
+					utils.Util.sendMessage(handler, GET_DDEVICES_NUM, arg0.result);
 				}
 			}
 		});

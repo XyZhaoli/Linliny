@@ -13,7 +13,7 @@
         android:layout_margin="15dp"
         android:background="@drawable/plus_minus_shape"
         android:ems="10"
-        android:hint="请输入取货码"
+        android:hint="请输入您的手机号码"
         android:inputType="number"
         android:padding="15dp"
         android:text=""

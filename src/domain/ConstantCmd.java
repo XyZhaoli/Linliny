@@ -11,4 +11,6 @@ public class ConstantCmd {
 	//请求出货的指令
 	public static final int get_request_shipment_cmd = 0x20;
 
+	
+	public static final byte[] getMachineStateCmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
 }

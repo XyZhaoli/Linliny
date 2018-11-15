@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="800dp"
-    android:layout_height="wrap_content"
-    android:gravity="center_vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:background="#000"
     android:orientation="vertical" >
 
@@ -11,7 +10,8 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:padding="15dp"
-        android:text="会员卡支付"
+        android:text="补货员入口"
+        android:textColor="@color/c_9d472c"
         android:textSize="32sp" />
 
     <View
@@ -19,19 +19,36 @@
         android:layout_height="1dp"
         android:background="#ccc" />
 
-    <TextView
-        android:id="@+id/tv_price_membership_pay_dialog"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="40dp"
-        android:gravity="center_horizontal"
-        android:padding="15dp"
-        android:text="￥66.666"
-        android:textColor="#FF0000"
-        android:textSize="52sp"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:padding="20dp" >
 
-    <include layout="@layout/input_edittext" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="4"
+            android:gravity="center"
+            android:textColor="@color/c_9d472c"
+            android:text="补货员密码："
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/et_password_exit_dialog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="10"
+            android:background="@drawable/plus_minus_shape"
+            android:ems="10"
+            android:hint="请输入补货员密码"
+            android:inputType="textPassword"
+            android:padding="10dp"
+            android:textSize="16sp" >
+
+            <requestFocus />
+        </EditText>
+    </LinearLayout>
 
     <View
         android:layout_width="match_parent"
@@ -44,13 +61,13 @@
         android:orientation="horizontal" >
 
         <Button
-            android:id="@+id/bt_ok_membership_pay_dialog"
+            android:id="@+id/bt_ok_membership_exit_dialog"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#FFAB0A"
             android:padding="20dp"
-            android:text="确认付款"
+            android:text="确       认"
             android:textSize="24sp" />
 
         <View
@@ -59,13 +76,13 @@
             android:background="#ccc" />
 
         <Button
-            android:id="@+id/bt_cancel_membership_pay_dialog"
+            android:id="@+id/bt_cancel_exit_dialog"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#c0c0c0"
             android:padding="20dp"
-            android:text="取    消"
+            android:text="取       消"
             android:textSize="24sp" />
     </LinearLayout>
 

@@ -84,8 +84,8 @@ public class ShoppingCarManager {
 	}
 
 	public void setFromNetWorkGoods(List<Goods> fromNetWorkGoods) {
-		ShoppingCarManager.fromNetWorkGoodsList.clear();
-		ShoppingCarManager.fromNetWorkGoodsList.addAll(fromNetWorkGoods);
+		fromNetWorkGoodsList.clear();
+		fromNetWorkGoodsList.addAll(fromNetWorkGoods);
 	}
 
 	/**

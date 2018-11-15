@@ -4,14 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
-import android.widget.ImageView;
+import android.view.View.OnClickListener;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
 import utils.ActivityManager;
 import view.BannerLayout;
 
-public class BasketMainActitvty extends BaseAcitivity {
+public class BasketMainActitvty extends BaseAcitivity implements OnClickListener {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -21,8 +22,7 @@ public class BasketMainActitvty extends BaseAcitivity {
 	}
 
 	private void initView() {
-		Intent intent = getIntent();
-		String title = intent.getStringExtra("title");
+		String title = getIntent().getStringExtra("title");
 		TextView tvTitle = (TextView) findViewById(R.id.return_goods_title);
 		tvTitle.setText(title);
 		BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner_in_getgoods);
@@ -37,46 +37,47 @@ public class BasketMainActitvty extends BaseAcitivity {
 		if (bannerLayout1 != null) {
 			bannerLayout1.setViewRes(res, titles);
 		}
-
 		// 返回点击事件
-		ImageView back = (ImageView) findViewById(R.id.back);
-		back.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				BasketMainActitvty.this.finish();
-				startActivity(new Intent(BasketMainActitvty.this, IuMainActivity.class));
-			}
-		});
+		findViewById(R.id.back).setOnClickListener(this);
 		// 注册\n会员
-		TextView textView1 = (TextView) findViewById(R.id.register);
-		textView1.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				Intent intent = new Intent(BasketMainActitvty.this, BaskethuiyuanActitvty.class);
-				startActivity(intent);
-			}
-		});
+		findViewById(R.id.register).setOnClickListener(this);
 		// 手机号\n登陆
-		TextView textView2 = (TextView) findViewById(R.id.phone_log_in);
-		textView2.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				Intent intent = new Intent(BasketMainActitvty.this, BasketShoujiActitvty.class);
-				startActivity(intent);
-			}
-		});
+		findViewById(R.id.phone_log_in).setOnClickListener(this);
 		// 会员卡\n登陆
-		final TextView textView3 = (TextView) findViewById(R.id.vip_log_in);
-		textView3.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View view) {
-				Intent intent = new Intent(BasketMainActitvty.this, BaskethuiyuankaActitvty.class);
-				startActivity(intent);
-			}
-		});
+		findViewById(R.id.vip_log_in).setOnClickListener(this);
 		ActivityManager.getInstance().addActivity(BasketMainActitvty.this);
 	}
 
 	@Override
 	public void changeTvTime(int time) {
-		// TODO Auto-generated method stub
 
 	}
 
+	@Override
+	public void onClick(View v) {
+		if (utils.Util.isFastClick()) {
+			switch (v.getId()) {
+			case R.id.back:
+				BasketMainActitvty.this.finish();
+				startActivity(new Intent(BasketMainActitvty.this, IuMainActivity.class));
+				break;
+			case R.id.register:
+				Intent intent = new Intent(BasketMainActitvty.this, BaskethuiyuanActitvty.class);
+				startActivity(intent);
+				break;
+			case R.id.phone_log_in:
+				Intent intent1 = new Intent(BasketMainActitvty.this, BasketShoujiActitvty.class);
+				startActivity(intent1);
+				break;
+			case R.id.vip_log_in:
+				Intent intent2 = new Intent(BasketMainActitvty.this, BaskethuiyuankaActitvty.class);
+				startActivity(intent2);
+				break;
+			default:
+				break;
+			}
+		} else {
+			Log.e("isFastClick", "isFastClick");
+		}
+	}
 }

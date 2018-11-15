@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,7 +43,6 @@ import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import domain.GetGoodsJsonInfo;
 import domain.Goods;
-import toast.UniversalToast;
 import utils.GsonUtils;
 import utils.ShoppingCarManager;
 import utils.VoiceUtils;
@@ -173,17 +173,19 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	 */
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		// TODO 这里需要改变
-		Intent intent = new Intent(getActivity(), DialogActivity.class);
-		String url;
-		try {
-			url = utils.Util.parseImageUrl(String.valueOf(data_list.get(position).get("Picture")))[1];
-		} catch (Exception e) {
-			url = String.valueOf(data_list.get(position).get("Picture"));
+		if (utils.Util.isFastClick()) {
+			// TODO 这里需要改变
+			Intent intent = new Intent(getActivity(), DialogActivity.class);
+			String url;
+			try {
+				url = utils.Util.parseImageUrl(String.valueOf(data_list.get(position).get("Picture")))[1];
+			} catch (Exception e) {
+				url = String.valueOf(data_list.get(position).get("Picture"));
+			}
+			intent.putExtra("Picture", url);
+			intent.putExtra("Yid", String.valueOf(data_list.get(position).get("Yid")));
+			startActivity(intent);
 		}
-		intent.putExtra("Picture", url);
-		intent.putExtra("Yid", String.valueOf(data_list.get(position).get("Yid")));
-		startActivity(intent);
 	}
 
 	class MySimpleAdapter extends SimpleAdapter {
@@ -214,18 +216,18 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 							if (inventory > 0) {
 								try {
 									shoppingCarManager.addGoodsToCar(new AlreadyToBuyGoods(goodsInList, 1));
-									Toast.makeText(getContext(), "添加购物车成功", 500).show();
+									Toast.makeText(getContext(), "添加购物车成功", Toast.LENGTH_SHORT).show();
 									// 将商品添加到购物车中去以后，发送广播，改变购物车上的数量
 									sendBroadcast();
 									addGoods2CartAnim(back);
 								} catch (Exception e) {
 									e.printStackTrace();
 									// 如果说我们第二次点击这个图标的话，就会报异常；
-									DisplayToast("购物车中已放入该商品", R.drawable.warning);
+									utils.Util.DisplayToast(getActivity(), "购物车中已放入该商品", R.drawable.warning);
 								}
 							} else {
 								// 库存数量为零
-								DisplayToast("亲，该商品不能购买更多哦!", R.drawable.warning);
+								utils.Util.DisplayToast(getActivity(), "亲，该商品不能购买更多哦!", R.drawable.warning);
 							}
 						}
 					}
@@ -293,19 +295,6 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 				});
 			}
 		});
-	}
-
-	/**
-	 * 函数说明：自定义的Toast显示
-	 * 
-	 * @param str
-	 *            所要显示的字符串
-	 * @param resID
-	 *            要显示的提示图片
-	 */
-	public void DisplayToast(String str, int resID) {
-		UniversalToast.makeText(getActivity(), str, UniversalToast.LENGTH_SHORT, UniversalToast.EMPHASIZE)
-				.setIcon(resID).setGravity(Gravity.CENTER_VERTICAL, 0, 500).show();
 	}
 
 	private void sendBroadcast() {

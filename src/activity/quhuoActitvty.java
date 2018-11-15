@@ -1,8 +1,8 @@
 package activity;
 
 import android.view.View;
+import android.view.View.OnClickListener;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -15,6 +15,8 @@ import org.json.JSONObject;
 
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
@@ -24,9 +26,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.text.InputType;
 import android.text.TextUtils;
-import android.widget.Button;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -40,7 +41,7 @@ import utils.CommandPackage;
 import utils.ThreadManager;
 import utils.VoiceUtils;
 
-public class quhuoActitvty extends BaseAcitivity {
+public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	EditText myCourse_roomId_input;
 	TextView number_1;
 	TextView number_2;
@@ -54,18 +55,16 @@ public class quhuoActitvty extends BaseAcitivity {
 	TextView number_0;
 	TextView number_enter;
 	ImageView number_clear_last;
-	private Button btnConfirm;
-	private Button btnCancel;
 	private MyHandler handler;
 	private static final int TAKE_GOODS_CODE = 0;
 	private Uartjni mUartNative;
 	private static int MachineSateCode;
 	private int cycleCount;
 	private List<GoodsPosition> goodsPositions;
-	private static final byte[] getMachineStateCmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
 	private String ono;
 	private Context mContext = quhuoActitvty.this;
 	private AlertDialog dialog;
+	private AlertDialog loadingDialog;
 
 	class MyHandler extends Handler {
 		@Override
@@ -78,7 +77,8 @@ public class quhuoActitvty extends BaseAcitivity {
 					parseFaultCode(msg.obj.toString());
 				} else if (!TextUtils.isEmpty(msg.obj.toString())) {
 					parseTakeGoodsCode(msg.obj.toString());
-					VoiceUtils.getInstance().initmTts(mContext, "准备出货，请稍等");
+					showLoadingDialog();
+					str2voice("准备出货，请稍等");
 					// 发送出货命令
 					sendShipmentCmd();
 				}
@@ -93,7 +93,6 @@ public class quhuoActitvty extends BaseAcitivity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.quhuo);
-		showNumberKeyboard();
 		initView();
 		initData();
 		initSerial();
@@ -120,7 +119,7 @@ public class quhuoActitvty extends BaseAcitivity {
 			JSONObject jsonObject = new JSONObject(str);
 			JSONArray js = jsonObject.getJSONArray("returnData");
 			String string = js.getString(0);
-			Map<String, Object> map = getMap(string);
+			Map<String, Object> map = utils.Util.getMap(string);
 			ono = map.get("Ono").toString();
 			String goodsPositionsStr = map.get("Untiekes").toString();
 			if (!TextUtils.isEmpty(goodsPositionsStr)) {
@@ -136,28 +135,6 @@ public class quhuoActitvty extends BaseAcitivity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
-	}
-
-	public static Map<String, Object> getMap(String jsonString) {
-		JSONObject jsonObject;
-		try {
-			jsonObject = new JSONObject(jsonString);
-			@SuppressWarnings("unchecked")
-			Iterator<String> keyIter = jsonObject.keys();
-			String key;
-			Object value;
-			Map<String, Object> valueMap = new HashMap<String, Object>();
-			while (keyIter.hasNext()) {
-				key = (String) keyIter.next();
-				value = jsonObject.get(key);
-				valueMap.put(key, value);
-			}
-			return valueMap;
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		return null;
 	}
 
 	public void initData() {
@@ -200,8 +177,43 @@ public class quhuoActitvty extends BaseAcitivity {
 	private void initView() {
 		handler = new MyHandler();
 		// 点击EditText禁止出现数字键盘
-		EditText quhuo = (EditText) findViewById(R.id.editText1);
-		quhuo.setInputType(InputType.TYPE_NULL);
+		number_1 = (TextView) findViewById(R.id.number_1);
+		number_2 = (TextView) findViewById(R.id.number_2);
+		number_3 = (TextView) findViewById(R.id.number_3);
+		number_4 = (TextView) findViewById(R.id.number_4);
+		number_5 = (TextView) findViewById(R.id.number_5);
+		number_6 = (TextView) findViewById(R.id.number_6);
+		number_7 = (TextView) findViewById(R.id.number_7);
+		number_8 = (TextView) findViewById(R.id.number_8);
+		number_9 = (TextView) findViewById(R.id.number_9);
+		number_0 = (TextView) findViewById(R.id.number_0);
+
+		number_1.setOnClickListener(this);
+		number_2.setOnClickListener(this);
+		number_3.setOnClickListener(this);
+		number_4.setOnClickListener(this);
+		number_5.setOnClickListener(this);
+		number_6.setOnClickListener(this);
+		number_7.setOnClickListener(this);
+		number_8.setOnClickListener(this);
+		number_9.setOnClickListener(this);
+		number_0.setOnClickListener(this);
+
+		findViewById(R.id.number_enter).setOnClickListener(this);
+		findViewById(R.id.btn_confirm).setOnClickListener(this);
+		findViewById(R.id.btn_cancel).setOnClickListener(this);
+
+		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);
+		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
+		number_clear_last.setOnClickListener(this);
+		// 长按删除键
+		number_clear_last.setOnLongClickListener(new View.OnLongClickListener() {
+			@Override
+			public boolean onLongClick(View v) {
+				myCourse_roomId_input.setText("");
+				return false;
+			}
+		});
 	}
 
 	@Override
@@ -209,6 +221,12 @@ public class quhuoActitvty extends BaseAcitivity {
 		super.onDestroy();
 		if (mUartNative != null) {
 			mUartNative.NativeThreadStop();
+		}
+		if(dialog != null) {
+			dialog.dismiss();
+		}
+		if (loadingDialog != null) {
+			loadingDialog.dismiss();
 		}
 	}
 
@@ -230,7 +248,8 @@ public class quhuoActitvty extends BaseAcitivity {
 						cycleCount = 0;
 						while (MachineSateCode != 1) {
 							// 判断机器此时的状态
-							mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
+							mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd,
+									ConstantCmd.getMachineStateCmd.length);
 							try {
 								Thread.sleep(1000);
 							} catch (InterruptedException e) {
@@ -264,27 +283,28 @@ public class quhuoActitvty extends BaseAcitivity {
 							e.printStackTrace();
 						}
 					}
-					runOnUiThread(new Runnable() {
-						@Override
-						public void run() {
-							str2voice("感谢您的本次购物,欢迎下次再来哦");
-							minusInventory();
-						}
-					});
+					minusInventory();
 					cycleCount = 0;
 					while (MachineSateCode != 1) {
 						// 判断机器此时的状态
-						mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
+						mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 						try {
 							Thread.sleep(1000);
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
 						if (cycleCount++ > 60) {
-							str2voice("机器正忙，付款失败，请您稍后再试");
-							return;
+							break;
 						}
 					}
+					runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							loadingDialog.dismiss();
+						}
+					});
+					str2voice("出货完成，感谢您的本次购物");
 					ActivityManager.getInstance().addActivity(quhuoActitvty.this);
 					ActivityManager.getInstance().finshAllActivity();
 					startActivity(new Intent(quhuoActitvty.this, SplashActivity.class));
@@ -300,6 +320,7 @@ public class quhuoActitvty extends BaseAcitivity {
 				if (ono != null) {
 					String url = "http://linliny.com/dingyifeng_web/shanchukuncuntion.json?model=&request=&MiD="
 							+ utils.Util.getMid() + "&Ono=" + ono;
+					Log.e("url", url);
 					HttpUtils httpUtils = new HttpUtils();
 					try {
 						httpUtils.sendSync(HttpMethod.GET, url);
@@ -307,171 +328,6 @@ public class quhuoActitvty extends BaseAcitivity {
 						e.printStackTrace();
 					}
 				}
-			}
-		});
-	}
-
-	// 显示数字键盘
-	public void showNumberKeyboard() {
-		// 数字键盘点击监听
-		number_1 = (TextView) findViewById(R.id.number_1);
-		number_2 = (TextView) findViewById(R.id.number_2);
-		number_3 = (TextView) findViewById(R.id.number_3);
-		number_4 = (TextView) findViewById(R.id.number_4);
-		number_5 = (TextView) findViewById(R.id.number_5);
-		number_6 = (TextView) findViewById(R.id.number_6);
-		number_7 = (TextView) findViewById(R.id.number_7);
-		number_8 = (TextView) findViewById(R.id.number_8);
-		number_9 = (TextView) findViewById(R.id.number_9);
-		number_0 = (TextView) findViewById(R.id.number_0);
-		number_enter = (TextView) findViewById(R.id.number_enter);
-		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);
-		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
-
-		number_1.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_1.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_2.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_2.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_3.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_3.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_4.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_4.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_5.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_5.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_6.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_6.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_7.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_7.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_8.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_8.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_9.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_9.getText().toString());
-				myCourse_roomId_input.setSelection(roomInput.length() + 1);
-			}
-		});
-		number_0.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				// 0不能在第一位
-				if (null != roomInput && !"".equals(roomInput)) {
-					myCourse_roomId_input.setText(roomInput + number_0.getText().toString());
-					myCourse_roomId_input.setSelection(roomInput.length() + 1);
-				}
-			}
-		});
-		number_enter.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				myCourse_roomId_input.setText("");
-			}
-		});
-		number_clear_last.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomIdInput = myCourse_roomId_input.getText().toString();
-				if (roomIdInput.length() > 0) {
-					myCourse_roomId_input.setText(roomIdInput.substring(0, roomIdInput.length() - 1));
-					myCourse_roomId_input.setSelection(roomIdInput.length() - 1);
-				}
-			}
-		});
-		// 长按删除键
-		number_clear_last.setOnLongClickListener(new View.OnLongClickListener() {
-			@Override
-			public boolean onLongClick(View v) {
-				myCourse_roomId_input.setText("");
-				return false;
-			}
-		});
-		// 完成
-		btnConfirm = (Button) findViewById(R.id.btn_confirm);
-		btnConfirm.setOnClickListener(new View.OnClickListener() {
-			// @Override
-			public void onClick(View v) {
-				final String roomId = myCourse_roomId_input.getText().toString();
-				if (!TextUtils.isEmpty(utils.Util.getMid()) && !TextUtils.isEmpty(roomId)) {
-					final String url = "http://linliny.com/dingyifeng_web/checkFCode.json?carryFruitcode=" + roomId
-							+ "&mid=" + utils.Util.getMid();
-					showProgressDialog();
-					ThreadManager.getThreadPool().execute(new Runnable() {
-						@Override
-						public void run() {
-							HttpUtils httpUtils = new HttpUtils();
-							try {
-								String res = httpUtils.sendSync(HttpMethod.GET, url).readString();
-								utils.Util.sendMessage(handler, TAKE_GOODS_CODE, res);
-							} catch (HttpException e1) {
-								e1.printStackTrace();
-								httpGetFail();
-							} catch (IOException e) {
-								e.printStackTrace();
-							}
-						}
-					});
-				} else {
-					VoiceUtils.getInstance().initmTts(mContext, "请输入您的取货码");
-					utils.Util.DisplayToast(mContext, "请输入您的取货码", R.drawable.warning);
-				}
-			}
-		});
-		btnCancel = (Button) findViewById(R.id.btn_cancel);
-		btnCancel.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				quhuoActitvty.this.finish();
 			}
 		});
 	}
@@ -601,19 +457,113 @@ public class quhuoActitvty extends BaseAcitivity {
 
 	@Override
 	public void changeTvTime(int time) {
-		// TODO Auto-generated method stub
 
 	}
 
 	private void httpGetFail() {
 		runOnUiThread(new Runnable() {
-
 			@Override
 			public void run() {
 				Toast.makeText(mContext, "网络错误, 减库存失败", Toast.LENGTH_LONG).show();
 			}
 		});
 	}
-	
-	
+
+	@Override
+	public void onClick(View v) {
+		String roomInput = myCourse_roomId_input.getText().toString();
+		switch (v.getId()) {
+		case R.id.number_1:
+			myCourse_roomId_input.setText(roomInput + number_1.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_2:
+			myCourse_roomId_input.setText(roomInput + number_2.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_3:
+			myCourse_roomId_input.setText(roomInput + number_3.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_4:
+			myCourse_roomId_input.setText(roomInput + number_4.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_5:
+			myCourse_roomId_input.setText(roomInput + number_5.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_6:
+			myCourse_roomId_input.setText(roomInput + number_6.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_7:
+			myCourse_roomId_input.setText(roomInput + number_7.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_8:
+			myCourse_roomId_input.setText(roomInput + number_8.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_9:
+			myCourse_roomId_input.setText(roomInput + number_9.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_0:
+			myCourse_roomId_input.setText(roomInput + number_0.getText().toString());
+			myCourse_roomId_input.setSelection(roomInput.length() + 1);
+			break;
+		case R.id.number_enter:
+			myCourse_roomId_input.setText("");
+			break;
+		case R.id.number_clear_last:
+			if (roomInput.length() > 0) {
+				myCourse_roomId_input.setText(roomInput.substring(0, roomInput.length() - 1));
+				myCourse_roomId_input.setSelection(roomInput.length() - 1);
+			}
+			break;
+		case R.id.btn_confirm:
+			if (!TextUtils.isEmpty(utils.Util.getMid()) && !TextUtils.isEmpty(roomInput)) {
+				showProgressDialog();
+				sendTakeGoodCode(roomInput);
+			} else {
+				VoiceUtils.getInstance().initmTts(mContext, "请输入您的取货码");
+				utils.Util.DisplayToast(mContext, "请输入您的取货码", R.drawable.warning);
+			}
+			break;
+		case R.id.btn_cancel:
+			quhuoActitvty.this.finish();
+			break;
+		default:
+			break;
+		}
+	}
+
+	private void sendTakeGoodCode(String roomInput) {
+		final String url = "http://linliny.com/dingyifeng_web/checkFCode.json?carryFruitcode=" + roomInput + "&mid="
+				+ utils.Util.getMid();
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+				httpGetFail();
+			}
+
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				if (!TextUtils.isEmpty(arg0.result)) {
+					utils.Util.sendMessage(handler, TAKE_GOODS_CODE, arg0.result);
+				}
+			}
+		});
+	}
+
+	private void showLoadingDialog() {
+		loadingDialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
+		loadingDialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
+		loadingDialog.setCanceledOnTouchOutside(true);
+		loadingDialog.show();
+		loadingDialog.getWindow().setContentView(R.layout.loading_dialog);
+	}
+
 }

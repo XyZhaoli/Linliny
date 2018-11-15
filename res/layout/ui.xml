@@ -44,71 +44,56 @@
     <!-- 左边分类列表  右边显示商品 -->
 
     <LinearLayout
-        android:id="@+id/linearLayout1"
-        android:layout_width="match_parent"
+        android:id="@+id/lv_layout"
+        android:layout_width="200dp"
+        android:layout_height="800dp"
+        android:layout_below="@+id/baseview"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <ListView
+            android:id="@+id/listview"
+            android:layout_width="match_parent"
+            android:layout_height="400dp"
+            android:divider="#E8E8E8"
+            android:dividerHeight="7dp"
+            android:listSelector="@drawable/list_seletor"
+            android:scrollbars="none" />
+
+        <ImageView
+            android:id="@+id/iv_arrow_goodsdetail"
+            android:layout_width="wrap_content"
+            android:layout_height="300dp"
+            android:src="@drawable/up_or_down" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="上下滑动可以查看更多"
+            android:textColor="#000"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="1050dp"
         android:layout_height="match_parent"
         android:layout_below="@+id/baseview"
+        android:layout_toRightOf="@+id/lv_layout"
         android:background="#E8E8E8"
-        android:orientation="horizontal" >
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1.0"
-            android:gravity="center_horizontal"
-            android:orientation="vertical" >
-
-            <ListView
-                android:id="@+id/listview"
-                android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:divider="#E8E8E8"
-                android:dividerHeight="7dp"
-                android:listSelector="@drawable/list_seletor"
-                android:scrollbars="none" />
-
-            <ImageView
-                android:id="@+id/iv_arrow_goodsdetail"
-                android:layout_width="wrap_content"
-                android:layout_height="300dp"
-                android:src="@drawable/up_or_down" />
-            
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="#000"
-                android:textSize="18sp"
-                android:text="上下滑动可以查看更多"/>
-        </LinearLayout>
-
-        <FrameLayout
-            android:id="@+id/fragment_container"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_margin="0dp"
-            android:layout_weight="4.0"
-            android:background="#E8E8E8"
-            android:overScrollMode="never" >
-        </FrameLayout>
-    </LinearLayout>
+        android:overScrollMode="never" >
+    </FrameLayout>
 
     <!-- 底部控件 -->
 
-    <RelativeLayout
-        android:id="@+id/panelBottom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true" >
-
-        <ImageView
-            android:id="@+id/Shopping"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:scaleType="fitXY"
-            android:src="@drawable/shopping_bigcar" />
-    </RelativeLayout>
+    <ImageView
+        android:id="@+id/Shopping"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/shopping_bigcar" />
 
     <TextView
         android:id="@+id/goods_detils_title"

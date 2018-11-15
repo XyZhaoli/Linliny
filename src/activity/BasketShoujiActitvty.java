@@ -24,25 +24,22 @@ import android.os.Message;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.Button;
+import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.GoodsPosition;
-import domain.MachineState;
-import toast.UniversalToast;
 import uartJni.UartJniCard;
 import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
-import utils.MachineStateManager;
 import utils.ThreadManager;
 import utils.VoiceUtils;
 
 @SuppressLint({ "NewApi", "HandlerLeak" })
-public class BasketShoujiActitvty extends BaseAcitivity {
+public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListener {
 	TextView number_1;
 	TextView number_2;
 	TextView number_3;
@@ -55,7 +52,6 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	TextView number_0;
 	TextView number_enter;
 	ImageView number_clear_last;
-	private Button btnCancel;
 	private Uartjni mUartNative;
 	private UartJniCard mUartNativeCard = null;
 	private static final int GET_MACHINE_STATE = 0;
@@ -65,17 +61,14 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	private static final int RETURN_BASKET_SUCCESS = 5;
 	private static final int GET_BASKET_CODE = 7;
 	private static final int RETURN_BASKET_FAIL = 6;
-	private static final String TAG = "BasketShoujiActitvty";
 	private Context mContext = BasketShoujiActitvty.this;
 	private MyHandler handler = new MyHandler();
-	private MachineStateManager instance;
-	private MachineState machineState;
 	private String mid;
 	private EditText myCourse_roomId_input;
 	private String phoneNum;
 	private int gid;
 	private Dialog alertDialog;
-	private static int MachineSateCode = 0;
+	private int MachineSateCode = 0;
 	private byte[] tempCardCmd = new byte[32];
 	private int sum = 0;
 	private boolean isSuccess = false;
@@ -356,107 +349,25 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 		number_8 = (TextView) findViewById(R.id.number_8);
 		number_9 = (TextView) findViewById(R.id.number_9);
 		number_0 = (TextView) findViewById(R.id.number_0);
-		number_enter = (TextView) findViewById(R.id.number_enter);// 重输
-		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);// 删除
 
-		number_1.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_1.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "1");
-			}
-		});
-		number_2.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_2.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "2");
-			}
-		});
-		number_3.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_3.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "3");
-			}
-		});
-		number_4.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_4.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "4");
-			}
-		});
-		number_5.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_5.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "5");
-			}
-		});
-		number_6.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_6.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "6");
-			}
-		});
-		number_7.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_7.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "7");
-			}
-		});
-		number_8.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_8.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "8");
-			}
-		});
-		number_9.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				myCourse_roomId_input.setText(roomInput + number_9.getText().toString());
-				VoiceUtils.getInstance().initmTts(mContext, "9");
-			}
-		});
-		number_0.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomInput = myCourse_roomId_input.getText().toString();
-				// 0不能在第一位
-				if (null != roomInput && !"".equals(roomInput)) {
-					myCourse_roomId_input.setText(roomInput + number_0.getText().toString());
-				}
-				VoiceUtils.getInstance().initmTts(mContext, "0");
-			}
-		});
-		number_enter.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				myCourse_roomId_input.setText("");
-			}
-		});
-		number_clear_last.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				String roomIdInput = myCourse_roomId_input.getText().toString();
-				if (roomIdInput.length() > 0) {
-					myCourse_roomId_input.setText(roomIdInput.substring(0, roomIdInput.length() - 1));
-				}
-			}
-		});
+		number_1.setOnClickListener(this);
+		number_2.setOnClickListener(this);
+		number_3.setOnClickListener(this);
+		number_4.setOnClickListener(this);
+		number_5.setOnClickListener(this);
+		number_6.setOnClickListener(this);
+		number_7.setOnClickListener(this);
+		number_8.setOnClickListener(this);
+		number_9.setOnClickListener(this);
+		number_0.setOnClickListener(this);
+
+		findViewById(R.id.number_enter).setOnClickListener(this);
+		findViewById(R.id.btn_confirm_phonelog_activity).setOnClickListener(this);
+		findViewById(R.id.btn_cancel_phonelog_activity).setOnClickListener(this);
+		
+		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);
+		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
+		number_clear_last.setOnClickListener(this);
 		// 长按删除键
 		number_clear_last.setOnLongClickListener(new View.OnLongClickListener() {
 			@Override
@@ -465,62 +376,8 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 				return false;
 			}
 		});
-		// 完成
-		Button button2 = (Button) findViewById(R.id.btn_confirm_phonelog_activity);
-		button2.setOnClickListener(new View.OnClickListener() {
-			// @Override
-			public void onClick(View v) {
-				phoneNum = myCourse_roomId_input.getText().toString();
-				if (TextUtils.isEmpty(phoneNum)) {
-					VoiceUtils.getInstance().initmTts(mContext, "请输入手机号");
-				} else {
-					if (!isChinaPhoneLegal(phoneNum)) {
-						VoiceUtils.getInstance().initmTts(mContext, "手机号格式输入错误，请重新输入");
-						myCourse_roomId_input.setText("");
-					} else {
-						String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNum + "&CcardId="
-								+ "&mid=" + mid;
-						HttpUtils httpUtils = new HttpUtils();
-						httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
-							@Override
-							public void onFailure(HttpException arg0, String arg1) {
-								httpGetFail();
-							}
-
-							@Override
-							public void onSuccess(ResponseInfo<String> arg0) {
-								if (!TextUtils.isEmpty(arg0.result)) {
-									utils.Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, arg0.result);
-								} else {
-									httpGetFail();
-								}
-							}
-						});
-					}
-				}
-			}
-		});
-		btnCancel = (Button) findViewById(R.id.btn_cancel_phonelog_activity);
-		btnCancel.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				BasketShoujiActitvty.this.finish();
-			}
-		});
 	}
 
-	/**
-	 * 函数说明：自定义的Toast显示
-	 * 
-	 * @param str
-	 *            所要显示的字符串
-	 * @param resID
-	 *            要显示的提示图片
-	 */
-	public void DisplayToast(String str, int resID) {
-		UniversalToast.makeText(this, str, UniversalToast.LENGTH_SHORT, UniversalToast.EMPHASIZE).setIcon(resID).show();
-	}
 
 	public static boolean isChinaPhoneLegal(String str) throws PatternSyntaxException {
 		String regExp = "^((13[0-9])|(15[^4])|(18[0-9])|(17[0-8])|(147,145))\\d{8}$";
@@ -664,6 +521,7 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		mContext = null;
 		mUartNativeCard.NativeCardThreadStop();
 		mUartNative.NativeThreadStop();
 	}
@@ -716,6 +574,101 @@ public class BasketShoujiActitvty extends BaseAcitivity {
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
 			}
 		});
+	}
+
+	@Override
+	public void onClick(View v) {
+		String phoneNumStr = myCourse_roomId_input.getText().toString();
+		switch (v.getId()) {
+		case R.id.number_1:
+			myCourse_roomId_input.setText(phoneNumStr + number_1.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_2:
+			myCourse_roomId_input.setText(phoneNumStr + number_2.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_3:
+			myCourse_roomId_input.setText(phoneNumStr + number_3.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_4:
+			myCourse_roomId_input.setText(phoneNumStr + number_4.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_5:
+			myCourse_roomId_input.setText(phoneNumStr + number_5.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_6:
+			myCourse_roomId_input.setText(phoneNumStr + number_6.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_7:
+			myCourse_roomId_input.setText(phoneNumStr + number_7.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_8:
+			myCourse_roomId_input.setText(phoneNumStr + number_8.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_9:
+			myCourse_roomId_input.setText(phoneNumStr + number_9.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_0:
+			myCourse_roomId_input.setText(phoneNumStr + number_0.getText().toString());
+			myCourse_roomId_input.setSelection(phoneNumStr.length() + 1);
+			break;
+		case R.id.number_enter:
+			myCourse_roomId_input.setText("");
+			break;
+		case R.id.number_clear_last:
+			if (phoneNumStr.length() > 0) {
+				myCourse_roomId_input.setText(phoneNumStr.substring(0, phoneNumStr.length() - 1));
+				myCourse_roomId_input.setSelection(phoneNumStr.length() - 1);
+			}
+			break;
+		case R.id.btn_confirm_phonelog_activity:
+			if (TextUtils.isEmpty(phoneNumStr)) {
+				VoiceUtils.getInstance().initmTts(mContext, "请输入手机号");
+			} else {
+				if (!isChinaPhoneLegal(phoneNumStr)) {
+					VoiceUtils.getInstance().initmTts(mContext, "手机号格式输入错误，请重新输入");
+					myCourse_roomId_input.setText("");
+				} else {
+					checkPuoneNumIsMembership(phoneNumStr);
+				}
+			}
+			break;
+		case R.id.btn_cancel_phonelog_activity:
+			BasketShoujiActitvty.this.finish();
+			break;
+		default:
+			break;
+		}
+	}
+
+	private void checkPuoneNumIsMembership(String phoneNumStr) {
+		String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNumStr + "&CcardId="
+				+ "&mid=" + mid;
+		phoneNum = phoneNumStr;
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+				httpGetFail();
+			}
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				if (!TextUtils.isEmpty(arg0.result)) {
+					utils.Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, arg0.result);
+				} else {
+					httpGetFail();
+				}
+			}
+		});
+			
 	}
 
 }

@@ -7,12 +7,11 @@ import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -38,15 +37,17 @@ import utils.ThreadManager;
 import utils.VoiceUtils;
 import domain.PayforResponse;
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+@SuppressLint("InlinedApi")
 public class DialogActivity extends Activity implements OnClickListener {
 
 	private static final int GET_RESPONSE = 1;
-	private static final int INIT_VIEW  = 2;
+	private static final int INIT_VIEW = 2;
 	private Context mContext;
 	private TextView shoppingNumber;
-	private static String itemYid;
+	private String itemYid;
 	// 获取图片
-	private MyHandler handler = new MyHandler();
+	private MyHandler handler;
 	private double Price = 0;
 	private double tol = 0;
 	private String num;
@@ -79,8 +80,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 				parseMessage(msg);
 				break;
 			case INIT_VIEW:
-				parseGoodsInfo((Goods) msg.obj);
-
+				parseGoodsInfo();
 				break;
 			default:
 				break;
@@ -95,22 +95,43 @@ public class DialogActivity extends Activity implements OnClickListener {
 		setFinishOnTouchOutside(true);
 		hideBottomUIMenu();
 		setContentView(R.layout.ui_details);
-		initView();
 		initData();
+		initView();
 	}
 
-	public void parseGoodsInfo(Goods goods) {
-		yname = goods.getYname().replaceAll(" ", "");
-		zongshu = Integer.valueOf(goods.getZongshu());
+	private void initData() {
+		itemYid = getIntent().getStringExtra("Yid");
+		handler = new MyHandler();
+		mContext = DialogActivity.this;
+		Mid = utils.Util.getMid();
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				ActivityManager.getInstance().addActivity(DialogActivity.this);
+				fromNetWorkGoods = ShoppingCarManager.getInstence().getFromNetWorkGoods();
+				for (Goods goods : fromNetWorkGoods) {
+					if (goods.getYid().equals(itemYid)) {
+						currentGoods = goods;
+						handler.sendEmptyMessage(INIT_VIEW);
+						break;
+					}
+				}
+			}
+		});
+	}
+
+	public void parseGoodsInfo() {
+		yname = currentGoods.getYname().replaceAll(" ", "");
+		zongshu = Integer.valueOf(currentGoods.getZongshu());
 		// 单价
-		Price = Double.parseDouble(goods.getPrice());
-		buyGoods = new AlreadyToBuyGoods(goods, 1);
-		tvGoodsFormat.setText("商品规格: " + goods.getCompany());// 商品规格
-		tvGoodsBarcode.setText("商品条码: " + goods.getBarCode());// 条码
-		tvGoodsInfo.setText(goods.getTitle());// 商品介绍
+		Price = Double.parseDouble(currentGoods.getPrice());
+		buyGoods = new AlreadyToBuyGoods(currentGoods, 1);
+		tvGoodsFormat.setText("商品规格: " + currentGoods.getCompany());// 商品规格
+		tvGoodsBarcode.setText("商品条码: " + currentGoods.getBarCode());// 条码
+		tvGoodsInfo.setText(currentGoods.getTitle());// 商品介绍
 		tvGoodsInventory.setText("商品库存: " + zongshu);// 库存
-		tvGoodsName.setText(goods.getYname());
-		setPrice(tvGoodsPrice, "￥" + goods.getPrice());
+		tvGoodsName.setText(currentGoods.getYname());
+		setPrice(tvGoodsPrice, "￥" + currentGoods.getPrice());
 	}
 
 	private void initView() {
@@ -135,14 +156,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 		btAddToShoppingCar.setOnClickListener(this);
 		ivCancel.setOnClickListener(this);
 
-		itemYid = getIntent().getStringExtra("Yid");
-
-		handler.post(new Runnable() {
-			@Override
-			public void run() {
-				Glide.with(mContext).load((String) getIntent().getStringExtra("Picture")).into(imView);
-			}
-		});
+		Glide.with(mContext).load((String) getIntent().getStringExtra("Picture")).into(imView);
 	}
 
 	@Override
@@ -219,13 +233,16 @@ public class DialogActivity extends Activity implements OnClickListener {
 					// 获取微信json
 					String wx = "http://linliny.com/dingyifeng_web/AddOrd.json?Mid=" + Mid + "&Total=" + tol + "&Goods="
 							+ itemYid + "_" + Price + "_" + num;
+
 					String wechatRes = httpUtils.sendSync(HttpMethod.GET, wx).readString();
+
 					// 获取支付宝json
 					String zf = "http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=" + Mid + "&Total=" + tol
 							+ "&Num=" + num + "&Goods=" + itemYid + "_" + yname + "_" + Price + "_" + num;
 					String aliPayRes = httpUtils.sendSync(HttpMethod.GET, zf).readString();
 					utils.Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
 				} catch (Exception e) {
+					e.printStackTrace();
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
@@ -248,25 +265,6 @@ public class DialogActivity extends Activity implements OnClickListener {
 		tvPrice.setText(textSpan);
 	}
 
-	private void initData() {
-		mContext = DialogActivity.this;
-		Mid = utils.Util.getMid();
-		ThreadManager.getThreadPool().execute(new Runnable() {
-			@Override
-			public void run() {
-				ActivityManager.getInstance().addActivity(DialogActivity.this);
-				fromNetWorkGoods = ShoppingCarManager.getInstence().getFromNetWorkGoods();
-				for (Goods goods : fromNetWorkGoods) {
-					if (goods.getYid().equals(itemYid)) {
-						currentGoods = goods;
-						utils.Util.sendMessage(handler, INIT_VIEW, currentGoods);
-						break;
-					}
-				}
-			}
-		});
-	}
-
 	private void sendBroadcast() {
 		Intent intent = new Intent();
 		intent.setAction("getGoodsNumAction");
@@ -278,12 +276,11 @@ public class DialogActivity extends Activity implements OnClickListener {
 		PayforResponse response = (PayforResponse) msg.obj;
 		if (!TextUtils.isEmpty(response.getAliPayRes()) && !TextUtils.isEmpty(response.getWechatRes())) {
 			// 解析json，获取微信支付的路径
-			aa b = new aa();
 			Intent intents = new Intent(DialogActivity.this, IuPayListActivity.class);
-			intents.putExtra("rs", b.weixinStr(response.getWechatRes()));
-			intents.putExtra("ZFurl", b.AlipayStr(response.getAliPayRes()));
-			intents.putExtra("outTradeNo", b.AlipayOrder(response.getAliPayRes()));
-			intents.putExtra("Ono", b.AlipayWXOrder(response.getWechatRes()));
+			intents.putExtra("rs", aa.weixinStr(response.getWechatRes()));
+			intents.putExtra("ZFurl", aa.AlipayStr(response.getAliPayRes()));
+			intents.putExtra("outTradeNo", aa.AlipayOrder(response.getAliPayRes()));
+			intents.putExtra("Ono", aa.AlipayWXOrder(response.getWechatRes()));
 			intents.putExtra("Ccard", "Mid=" + Mid + "&Total=" + tol + "&Goods=" + getIntent().getStringExtra("Yid")
 					+ "_" + Price + "_" + num);
 			intents.putExtra("totalPrice", String.valueOf(tol));
@@ -298,6 +295,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		mContext = null;
 		if (dialog != null) {
 			dialog.dismiss();
 		}
@@ -308,12 +306,14 @@ public class DialogActivity extends Activity implements OnClickListener {
 		dialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
 		dialog.setCanceledOnTouchOutside(true);
 		dialog.show();
+		dialog.setCanceledOnTouchOutside(false);
 		dialog.getWindow().setContentView(R.layout.loading_dialog_dialog);
 	}
 
 	/**
 	 * 隐藏虚拟按键，并且全屏
 	 */
+	@SuppressLint("InlinedApi")
 	protected void hideBottomUIMenu() {
 		// 隐藏虚拟按键，并且全屏
 		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api

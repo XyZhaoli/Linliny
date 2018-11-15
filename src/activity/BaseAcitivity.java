@@ -6,7 +6,6 @@ import java.util.TimerTask;
 import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -50,7 +49,7 @@ public abstract class BaseAcitivity extends Activity {
 	}
 
 	private void initCountDown() {
-		countDownTimer.schedule(countDownTask, 0, 1000);
+		countDownTimer.schedule(countDownTask, 1000);
 	}
 
 	private void initData() {
@@ -83,7 +82,6 @@ public abstract class BaseAcitivity extends Activity {
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		COUNT_DOWN_TIME = 240;
-		Log.e("onTouchEvent", event.getAction() + "");
 		return super.onTouchEvent(event);
 	}
 
