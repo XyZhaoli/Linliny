@@ -20,6 +20,8 @@ import android.text.Spannable;
 import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.style.AbsoluteSizeSpan;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -53,7 +55,7 @@ public class DialogActivity extends Activity implements OnClickListener {
 	private String num;
 	private AlreadyToBuyGoods buyGoods;
 	private List<Goods> fromNetWorkGoods;
-	protected String goodsInfo;
+	protected StringBuffer goodsInfo;
 	private AlertDialog dialog;
 	private ImageButton minus;
 	private TextView tvGoodsFormat;
@@ -92,7 +94,6 @@ public class DialogActivity extends Activity implements OnClickListener {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setFinishOnTouchOutside(true);
 		hideBottomUIMenu();
 		setContentView(R.layout.ui_details);
 		initData();
@@ -100,13 +101,14 @@ public class DialogActivity extends Activity implements OnClickListener {
 	}
 
 	private void initData() {
-		itemYid = getIntent().getStringExtra("Yid");
 		handler = new MyHandler();
 		mContext = DialogActivity.this;
-		Mid = utils.Util.getMid();
+		goodsInfo = new StringBuffer();
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
+				itemYid = getIntent().getStringExtra("Yid");
+				Mid = utils.Util.getMid();
 				ActivityManager.getInstance().addActivity(DialogActivity.this);
 				fromNetWorkGoods = ShoppingCarManager.getInstence().getFromNetWorkGoods();
 				for (Goods goods : fromNetWorkGoods) {
@@ -157,6 +159,12 @@ public class DialogActivity extends Activity implements OnClickListener {
 		ivCancel.setOnClickListener(this);
 
 		Glide.with(mContext).load((String) getIntent().getStringExtra("Picture")).into(imView);
+	}
+
+	@Override
+	public boolean onTouchEvent(MotionEvent event) {
+		Log.e("onTouchEvent", event.getAction() + "");
+		return super.onTouchEvent(event);
 	}
 
 	@Override
@@ -229,25 +237,34 @@ public class DialogActivity extends Activity implements OnClickListener {
 					num = (String) shoppingNumber.getText();
 					// 总价
 					tol = Integer.parseInt(num) * Price;
-					goodsInfo = itemYid + "_" + Price + "_" + num;
+					goodsInfo.append(itemYid).append("_").append(Price).append("_").append(num);
 					// 获取微信json
-					String wx = "http://linliny.com/dingyifeng_web/AddOrd.json?Mid=" + Mid + "&Total=" + tol + "&Goods="
-							+ itemYid + "_" + Price + "_" + num;
-
-					String wechatRes = httpUtils.sendSync(HttpMethod.GET, wx).readString();
+					StringBuilder wx = new StringBuilder();
+					wx.append("http://linliny.com/dingyifeng_web/AddOrd.json?Mid=").append(Mid).append("&Total=")
+							.append(tol).append("&Goods=").append(itemYid).append("_").append(Price).append("_")
+							.append(num);
+					Log.e("wx", wx.toString());
+					String wechatRes = httpUtils.sendSync(HttpMethod.GET, wx.toString()).readString();
 
 					// 获取支付宝json
-					String zf = "http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=" + Mid + "&Total=" + tol
-							+ "&Num=" + num + "&Goods=" + itemYid + "_" + yname + "_" + Price + "_" + num;
-					String aliPayRes = httpUtils.sendSync(HttpMethod.GET, zf).readString();
+					StringBuilder zf = new StringBuilder();
+
+					zf.append("http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=").append(Mid)
+							.append("&Total=").append(tol).append("&Num=").append(num).append("&Goods=").append(itemYid)
+							.append("_").append(yname).append("_").append(Price).append("_").append(num);
+
+					String aliPayRes = httpUtils.sendSync(HttpMethod.GET, zf.toString()).readString();
+
 					utils.Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
+
 				} catch (Exception e) {
 					e.printStackTrace();
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
 							utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(getApplicationContext(), "网络错误，请重试");
+							VoiceUtils.getInstance().initmTts("网络错误，请重试");
+							dialog.dismiss();
 						}
 					});
 				}
@@ -281,10 +298,12 @@ public class DialogActivity extends Activity implements OnClickListener {
 			intents.putExtra("ZFurl", aa.AlipayStr(response.getAliPayRes()));
 			intents.putExtra("outTradeNo", aa.AlipayOrder(response.getAliPayRes()));
 			intents.putExtra("Ono", aa.AlipayWXOrder(response.getWechatRes()));
-			intents.putExtra("Ccard", "Mid=" + Mid + "&Total=" + tol + "&Goods=" + getIntent().getStringExtra("Yid")
-					+ "_" + Price + "_" + num);
+			StringBuilder Ccard = new StringBuilder();
+			Ccard.append("Mid=").append(Mid).append("&Total=").append(tol).append("&Goods=").append(getIntent().getStringExtra("Yid"))
+			.append("_").append(Price).append("_").append(num);
+			intents.putExtra("Ccard", Ccard.toString());
 			intents.putExtra("totalPrice", String.valueOf(tol));
-			intents.putExtra("goodsInfo", goodsInfo);
+			intents.putExtra("goodsInfo", goodsInfo.toString());
 			startActivity(intents);
 			DialogActivity.this.finish();
 		} else {

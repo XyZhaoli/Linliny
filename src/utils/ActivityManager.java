@@ -10,7 +10,7 @@ public class ActivityManager {
 
 	private static ActivityManager activityManager;
 
-	private List<Activity> activities = new ArrayList<Activity>();
+//	private List<Activity> activities = new ArrayList<Activity>();
 
 	public static ActivityManager getInstance() {
 		if (activityManager == null) {
@@ -24,31 +24,31 @@ public class ActivityManager {
 	}
 
 	public void addActivity(@NonNull Activity activity) {
-		activities.add(activity);
+		//activities.add(activity);
 	}
 
 	public void removeActivity(@NonNull Activity activity) {
-		activities.remove(activity);
+		//activities.remove(activity);
 	}
 
 	public void finshActivity(@NonNull Activity activity) {
-		for (Activity inActivity : activities) {
-			if (inActivity.getLocalClassName().equals(activity.getLocalClassName()) && !inActivity.isDestroyed()) {
-				inActivity.finish();
-			}
-		}
+//		for (Activity inActivity : activities) {
+//			if (inActivity.getLocalClassName().equals(activity.getLocalClassName()) && !inActivity.isDestroyed()) {
+//				inActivity.finish();
+//			}
+//		}
 	}
 
 	public void finshAllActivity() {
-		if (activities.size() == 0) {
-			return;
-		} else {
-			for(int i = 0; i < activities.size(); i ++) {
-				if (!activities.get(i).isDestroyed()) {
-					activities.get(i).finish();
-				}
-			}
-		}
+//		if (activities.size() == 0) {
+//			return;
+//		} else {
+//			for(int i = 0; i < activities.size(); i ++) {
+//				if (!activities.get(i).isDestroyed()) {
+//					activities.get(i).finish();
+//				}
+//			}
+//		}
 	}
 
 }

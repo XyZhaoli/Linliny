@@ -117,12 +117,6 @@ public class Util {
 		return flag;
 	}
 
-	public static void str2voice(Context context, String string) {
-		if (TextUtils.isEmpty(string)) {
-			VoiceUtils.getInstance().initmTts(context, string);
-		}
-	}
-
 	public static void delay(int time) {
 		if (time > 0) {
 			try {
@@ -205,15 +199,15 @@ public class Util {
 
 	@SuppressLint("DefaultLocale")
 	public static String byteToHexstring(byte[] buff, int length) {
-		String HexString = "";
+		StringBuffer HexString = new StringBuffer();
 		for (int i = 0; i < length; i++) {
-			String hex = Integer.toHexString(buff[i] & 0xff);
+			StringBuffer hex = new StringBuffer(Integer.toHexString(buff[i] & 0xff));
 			if (hex.length() == 1) {
-				hex = '0' + hex;
+				hex.insert(0, "0");
 			}
-			HexString += hex.toUpperCase() + " ";
+			HexString.append(hex.toString().toUpperCase() + " ");
 		}
-		return HexString;
+		return HexString.toString();
 	}
 
 	public static String byteToHexstringNo(byte[] buff, int length) {

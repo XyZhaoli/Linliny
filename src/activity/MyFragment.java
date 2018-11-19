@@ -116,11 +116,6 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 				});
 				// 配置适配器
 				gview.setAdapter(sim_adapter);
-			} else {
-				if (activity != null) {
-					Toast.makeText(activity, "网络错误，请检查网络", Toast.LENGTH_SHORT).show();
-					getActivity().finish();
-				}
 			}
 		}
 	}
@@ -154,7 +149,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 							@Override
 							public void run() {
 								utils.Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts(getActivity(), "网络错误，请重试");
+								VoiceUtils.getInstance().initmTts("网络错误，请重试");
 							}
 						});
 					}

@@ -83,25 +83,25 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 				int response = parseJson(msg.obj.toString(), "check");
 				if (response == 1) {
 					// 是我们的篮子，开始还篮子
-					VoiceUtils.getInstance().initmTts(mContext, "感应成功");
+					VoiceUtils.getInstance().initmTts("感应成功");
 					sendReturnBasketCmd();
 					isHaveCardCode = false;
 					BasketCode = serialCode;
 				} else {
-					VoiceUtils.getInstance().initmTts(mContext, "篮子编码有误");
+					VoiceUtils.getInstance().initmTts("篮子编码有误");
 				}
 				break;
 			case RETURN_BASKET_FAIL:
 				// 这个时候还篮子失败，通知服务器
 				utils.Util.DisplayToast(mContext, "还篮子失败", R.drawable.fail);
-				VoiceUtils.getInstance().initmTts(mContext, "还篮子失败，请您将篮子正确放入机器中");
+				VoiceUtils.getInstance().initmTts("还篮子失败，请您将篮子正确放入机器中");
 				break;
 			case SEND_RETURN_BASKET_CMD_SUCCESS:
-				VoiceUtils.getInstance().initmTts(mContext, "请您等候机器开门");
+				VoiceUtils.getInstance().initmTts("请您等候机器开门");
 				break;
 			case RETURN_BASKET_SUCCESS:
 				returnBasketMoney();
-				VoiceUtils.getInstance().initmTts(mContext, "还篮子成功，准备退款");
+				VoiceUtils.getInstance().initmTts("还篮子成功，准备退款");
 				break;
 			default:
 				break;
@@ -114,13 +114,13 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 			@Override
 			public void run() {
 				if (!TextUtils.isEmpty(BasketCode)) {
-					String url = "http://linliny.com/returnBasket.json?gid=" + gid + "&phone=&Frid=" + BasketCode
-							+ "&mid=" + mid + "&cardSerial=" + cardCode;
+					StringBuilder url = new StringBuilder("http://linliny.com/returnBasket.json?gid=").append(gid).append("&phone=&Frid=").append(BasketCode).append("&mid=")
+							.append(mid).append("&cardSerial=").append(cardCode);
 					HttpUtils httpUtils = new HttpUtils();
 					try {
-						String httpResult = httpUtils.sendSync(HttpMethod.GET, url).readString();
+						String httpResult = httpUtils.sendSync(HttpMethod.GET, url.toString()).readString();
 						if (!TextUtils.isEmpty(httpResult)) {
-							VoiceUtils.getInstance().initmTts(mContext, "还篮子成功,请注意微信商城退款通知");
+							VoiceUtils.getInstance().initmTts("还篮子成功,请注意微信商城退款通知");
 							ActivityManager.getInstance().finshAllActivity();
 							startActivity(new Intent(mContext, SplashActivity.class));
 						}
@@ -144,21 +144,21 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 		gid = parseJson(string, "gid");
 		switch (gid) {
 		case 0:
-			VoiceUtils.getInstance().initmTts(mContext, "机器格子不足，请您稍后再来");
+			VoiceUtils.getInstance().initmTts("机器格子不足，请您稍后再来");
 			utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
 			break;
 		case -1:
-			VoiceUtils.getInstance().initmTts(mContext, "会员卡不存在");
+			VoiceUtils.getInstance().initmTts("会员卡不存在");
 			utils.Util.DisplayToast(mContext, "会员卡不存在", R.drawable.smile);
 			break;
 		case -2:
-			VoiceUtils.getInstance().initmTts(mContext, "您还不是我们的会员，请您前往商城注册会员");
+			VoiceUtils.getInstance().initmTts("您还不是我们的会员，请您前往商城注册会员");
 			utils.Util.DisplayToast(mContext, "请您前往商城注册会员", R.drawable.smile);
 			break;
 		default:
 			cardCode = serialCode;
 			showAlertDialog(BaskethuiyuankaActitvty.this, "提示");
-			VoiceUtils.getInstance().initmTts(mContext, "请您将篮子放置在感应区");
+			VoiceUtils.getInstance().initmTts("请您将篮子放置在感应区");
 			isHaveCardCode = true;
 			break;
 		}
@@ -180,15 +180,15 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 						e.printStackTrace();
 					}
 					if (cycleCount++ > 20) {
-						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器正忙，付款失败，请您稍后再试");
+						VoiceUtils.getInstance().initmTts("机器正忙，付款失败，请您稍后再试");
 						return;
 					}
 				}
 				// 延时100毫秒
 				utils.Util.delay(100);
 
-				String baseketLocation = "0E-" + gid;
-				String[] rowAndColumnStr = baseketLocation.split("-");
+				StringBuilder baseketLocation = new StringBuilder("0E-").append(gid);
+				String[] rowAndColumnStr = baseketLocation.toString().split("-");
 				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
 						Integer.parseInt(rowAndColumnStr[1]));
 				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_return_basket_cmd,
@@ -200,7 +200,7 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 
 	private void initData() {
 		ActivityManager.getInstance().addActivity(BaskethuiyuankaActitvty.this);
-		VoiceUtils.getInstance().initmTts(mContext, "请将会员卡放置在感应区");
+		VoiceUtils.getInstance().initmTts("请将会员卡放置在感应区");
 		SharedPreferences preferences = getSharedPreferences("userInfo", MODE_PRIVATE);
 		mid = preferences.getString("Mid", "");
 	}
@@ -296,10 +296,10 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 				serialCode = uartCode;
 				if (!isHaveCardCode) {
 					// 刚开始我们不确定这个编码是不是会员卡的编码，默认将此编码认为是会员卡编码
-					String url = "http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=" + uartCode + "&mid="
-							+ mid;
+					StringBuffer url = new StringBuffer("http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=").append(uartCode)
+							.append("&mid=").append(mid);
 					HttpUtils httpUtils = new HttpUtils();
-					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+					httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
@@ -318,9 +318,9 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 				} else {
 					// TODO 3.读取的篮子的信息传给服务器进行验证
 					// 如果我们已经获取到了会员卡的信息，这是可以默认用户此时是获取的是篮子的编码，获取篮子的RFID编码 然后将篮子的编码发送给服务器进行验证
-					String url = "http://linliny.com/checkBasket.json?Frid=" + uartCode;
+					StringBuffer url = new StringBuffer("http://linliny.com/checkBasket.json?Frid=").append(uartCode);
 					HttpUtils httpUtils = new HttpUtils();
-					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+					httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
@@ -337,7 +337,7 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 						}
 					});
 				}
-			
+
 			}
 		});
 	}
@@ -349,12 +349,12 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 			byte[] code = new byte[length];
 			System.arraycopy(fullCmd, 8, code, 0, length);
 			String byteToHexstring = utils.Util.byteToHexstring(code, length);
-			String cardCodeStr = "";
+			StringBuilder cardCodeStr = new StringBuilder();
 			String[] split = byteToHexstring.split(" ");
 			for (int i = split.length - 1; i >= 0; i--) {
-				cardCodeStr += split[i];
+				cardCodeStr.append(split[i]);
 			}
-			long cardCodelong = Long.valueOf(cardCodeStr, 16);
+			long cardCodelong = Long.valueOf(cardCodeStr.toString(), 16);
 			return cardCodelong;
 		} else {
 			throw new Exception("篮子编码解析错误");
@@ -492,48 +492,48 @@ public class BaskethuiyuankaActitvty extends BaseAcitivity {
 		// TODO Auto-generated method stub
 
 	}
-	
+
 	private void httpGetFail() {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				utils.Util.DisplayToast(mContext, "网络错误，请联系客服", R.drawable.warning);
-				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+				VoiceUtils.getInstance().initmTts("网络错误，请重试");
 			}
 		});
 	}
-	
+
 	// 还篮子失败的时候，我们发送出货命令，将篮子退换出来
-		public void sendOutBasketCmd() {
-			ThreadManager.getThreadPool().execute(new Runnable() {
-				@Override
-				public void run() {
-					int cycleCount = 0;
-					// 查询机器状态
-					while (MachineSateCode != 1) {
-						// 判断机器此时的状态
-						byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
-						mUartNative.UartWriteCmd(cmd, cmd.length);
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						if (cycleCount++ > 40) {
-							VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
-							return;
-						}
+	public void sendOutBasketCmd() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				int cycleCount = 0;
+				// 查询机器状态
+				while (MachineSateCode != 1) {
+					// 判断机器此时的状态
+					byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
+					mUartNative.UartWriteCmd(cmd, cmd.length);
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
 					}
-					// 延时100毫秒
-					utils.Util.delay(100);
-					String baseketLocation = "0E-" + gid;
-					String[] rowAndColumnStr = baseketLocation.split("-");
-					GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
-							Integer.parseInt(rowAndColumnStr[1]));
-					byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd,
-							basketPosition.getRowNum(), basketPosition.getColumnNum());
-					mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+					if (cycleCount++ > 40) {
+						VoiceUtils.getInstance().initmTts("机器出错");
+						return;
+					}
 				}
-			});
-		}
+				// 延时100毫秒
+				utils.Util.delay(100);
+				String baseketLocation = "0E-" + gid;
+				String[] rowAndColumnStr = baseketLocation.split("-");
+				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
+						Integer.parseInt(rowAndColumnStr[1]));
+				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd,
+						basketPosition.getRowNum(), basketPosition.getColumnNum());
+				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+			}
+		});
+	}
 }

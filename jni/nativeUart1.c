@@ -118,7 +118,6 @@ JNIEXPORT void JNICALL Java_uartJni_UartJniCard_NativeCardThreadStop(JNIEnv *env
 
 	is_thread_running = 0;
 	kill_rc = pthread_join(thread_id, NULL);
-	D("#Thread end=%d", kill_rc);
 	LOGE("uart_thread_stop success");
 	close(fd);
 }

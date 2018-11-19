@@ -212,7 +212,7 @@ public class shebeihaoActitvty extends Activity implements OnClickListener {
 					@Override
 					public void run() {
 						utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-						VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+						VoiceUtils.getInstance().initmTts( "网络错误，请重试");
 					}
 				});
 			}

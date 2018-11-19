@@ -253,7 +253,7 @@ public class LoaddingActivity extends BaseAcitivity {
 	}
 
 	protected void str2voice(String string) {
-		VoiceUtils.getInstance().initmTts(getApplicationContext(), string);
+		VoiceUtils.getInstance().initmTts( string);
 	}
 
 	// 出货的准备

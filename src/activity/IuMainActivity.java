@@ -7,32 +7,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import com.iflytek.cloud.thirdparty.f;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
-import android.view.WindowManager.LayoutParams;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import android_serialport_api.sample.R;
@@ -47,9 +33,9 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 	private TextView tv_sofeware_version;
 	private TextView tvCountdownTime;
 	private TextView clockView;
-	boolean isRunning = false;
+	private boolean isRunning = false;
 	private static final String DATE_FORMAT = "%02d:%02d:%02d";
-	protected static final String tag = "IuMainActivity";
+	private static final String tag = "IuMainActivity";
 	private BannerLayout bannerLayout;
 
 	@SuppressLint("SimpleDateFormat")
@@ -156,7 +142,6 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 				@Override
 				public void onLoading(long total, long current, boolean isUploading) {
 					super.onLoading(total, current, isUploading);
-					Log.e("current", current + "");
 				}
 			});
 		}
@@ -180,7 +165,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 	public void changeTvTime(int time) {
 		mTime.setText(getDateTime());
 		tvCountdownTime.setText(getTime() + "s");
-		final Date d = new Date();
+		Date d = new Date();
 		clockView.setText(String.format(DATE_FORMAT, d.getHours(), d.getMinutes(), d.getSeconds()));
 	}
 

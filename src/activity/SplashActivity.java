@@ -58,12 +58,20 @@ public class SplashActivity extends Activity {
 				Boolean shebeihao = userInfo.getBoolean("shebeihao1", false);
 				if (shebeihao) {
 					startActivity(new Intent(SplashActivity.this, IuMainActivity.class));
-					VoiceUtils.getInstance().initmTts(getApplicationContext(), "欢迎光临邻里农园鲜果智能售卖机");
+					VoiceUtils.getInstance().initmTts("欢迎光临邻里农园鲜果智能售卖机");
 				} else {
 					startActivity(new Intent(SplashActivity.this, shebeihaoActitvty.class));
 				}
 			}
 		});
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (mImageView != null) {
+			Glide.clear(mImageView);
+		}
 	}
 
 	/**

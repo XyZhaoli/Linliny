@@ -242,7 +242,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 							@Override
 							public void run() {
 								utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+								VoiceUtils.getInstance().initmTts("网络错误，请重试");
 							}
 						});
 					}
@@ -306,7 +306,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 			@Override
 			public void run() {
 				utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+				VoiceUtils.getInstance().initmTts("网络错误，请重试");
 			}
 		});
 	}
@@ -397,14 +397,14 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 			switch (msg.what) {
 			case MACHINE_HAVE_FAULT:
 				utils.Util.DisplayToast(mWeakReference.get(), "机器处于故障状态", R.drawable.fail);
-				VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器处于故障状态, 请你稍后进行购买");
+				VoiceUtils.getInstance().initmTts( "机器处于故障状态, 请你稍后进行购买");
 				break;
 			case 2:
 				parseMessage(msg.obj.toString());
 				break;
 			case 3:
 				if (!isTakeGoods) {
-					VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器故障，正在调试");
+					VoiceUtils.getInstance().initmTts("机器故障，正在调试");
 				}
 				if (mUartNative != null) {
 					mUartNative.NativeThreadStop();

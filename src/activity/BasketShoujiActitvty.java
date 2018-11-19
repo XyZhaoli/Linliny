@@ -93,7 +93,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 	private void initView() {
 		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
 		myCourse_roomId_input.setInputType(InputType.TYPE_NULL);
-		VoiceUtils.getInstance().initmTts(this, "请输入手机号码");
+		VoiceUtils.getInstance().initmTts("请输入手机号码");
 	}
 
 	private void initSerialJni() {
@@ -180,29 +180,29 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 				int response = parseJson(msg.obj.toString(), "check");
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
-					VoiceUtils.getInstance().initmTts(mContext, "感应成功，请等候开门");
+					VoiceUtils.getInstance().initmTts("感应成功，请等候开门");
 					BasketCode = SerialCode;
 					sendReturnBasketCmd();
 				} else {
 					BasketCode = null;
-					VoiceUtils.getInstance().initmTts(mContext, "篮子编码有误");
+					VoiceUtils.getInstance().initmTts("篮子编码有误");
 				}
 				break;
 
 			case GET_BASKET_CODE:
 				// 这个时候还篮子成功，通知服务器可以进行退款及其后续的操作
-				utils.Util.str2voice(mContext, "开始准备还篮子");
+				VoiceUtils.getInstance().initmTts("开始准备还篮子");
 				break;
 
 			case RETURN_BASKET_FAIL:
 				// 这个时候还篮子失败，通知服务器
 				utils.Util.DisplayToast(mContext, "还篮子失败", R.drawable.fail);
-				VoiceUtils.getInstance().initmTts(mContext, "还篮子失败，请您将篮子正确放入机器中");
+				VoiceUtils.getInstance().initmTts("还篮子失败，请您将篮子正确放入机器中");
 				sendOutBasketCmd();
 				break;
 			case RETURN_BASKET_SUCCESS:
 				// TODO 还篮子成功以后 通知服务器退款
-				VoiceUtils.getInstance().initmTts(mContext, "还篮子成功,请注意商城退款通知");
+				VoiceUtils.getInstance().initmTts("还篮子成功,请注意商城退款通知");
 				returnBasketMoney();
 				ActivityManager.getInstance().finshAllActivity();
 				break;
@@ -230,7 +230,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 						e.printStackTrace();
 					}
 					if (cycleCount++ > 40) {
-						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
+						VoiceUtils.getInstance().initmTts("机器出错");
 						return;
 					}
 				}
@@ -251,12 +251,12 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 		gid = parseJson(string, "gid");
 		if (gid >= 1 && gid <= 16) {
 			showAlertDialog(BasketShoujiActitvty.this, "提示");
-			VoiceUtils.getInstance().initmTts(mContext, "请您将篮子放置在感应区");
+			VoiceUtils.getInstance().initmTts("请您将篮子放置在感应区");
 		} else if (gid == 0) {
-			VoiceUtils.getInstance().initmTts(mContext, "机器格子不足，请您稍后再来");
+			VoiceUtils.getInstance().initmTts("机器格子不足，请您稍后再来");
 			utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
 		} else if (gid == -1) {
-			VoiceUtils.getInstance().initmTts(mContext, "您还不是我们的会员，请您前往商城注册会员");
+			VoiceUtils.getInstance().initmTts("您还不是我们的会员，请您前往商城注册会员");
 			utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员", R.drawable.smile);
 		}
 	}
@@ -272,7 +272,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 					try {
 						String httpResult = httpUtils.sendSync(HttpMethod.GET, url).readString();
 						if (!TextUtils.isEmpty(httpResult)) {
-							VoiceUtils.getInstance().initmTts(mContext, "还篮子成功,请注意微信商城退款通知");
+							VoiceUtils.getInstance().initmTts("还篮子成功,请注意微信商城退款通知");
 							ActivityManager.getInstance().finshAllActivity();
 							startActivity(new Intent(mContext, SplashActivity.class));
 						}
@@ -364,7 +364,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 		findViewById(R.id.number_enter).setOnClickListener(this);
 		findViewById(R.id.btn_confirm_phonelog_activity).setOnClickListener(this);
 		findViewById(R.id.btn_cancel_phonelog_activity).setOnClickListener(this);
-		
+
 		number_clear_last = (ImageView) findViewById(R.id.number_clear_last);
 		myCourse_roomId_input = (EditText) findViewById(R.id.editText1);
 		number_clear_last.setOnClickListener(this);
@@ -377,7 +377,6 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 			}
 		});
 	}
-
 
 	public static boolean isChinaPhoneLegal(String str) throws PatternSyntaxException {
 		String regExp = "^((13[0-9])|(15[^4])|(18[0-9])|(17[0-8])|(147,145))\\d{8}$";
@@ -537,7 +536,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 			@Override
 			public void run() {
 				utils.Util.DisplayToast(mContext, "网络错误，请联系客服", R.drawable.warning);
-				VoiceUtils.getInstance().initmTts(mContext, "网络错误，请重试");
+				VoiceUtils.getInstance().initmTts("网络错误，请重试");
 			}
 		});
 	}
@@ -559,7 +558,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 						e.printStackTrace();
 					}
 					if (cycleCount++ > 40) {
-						VoiceUtils.getInstance().initmTts(getApplicationContext(), "机器出错");
+						VoiceUtils.getInstance().initmTts("机器出错");
 						return;
 					}
 				}
@@ -631,10 +630,10 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 			break;
 		case R.id.btn_confirm_phonelog_activity:
 			if (TextUtils.isEmpty(phoneNumStr)) {
-				VoiceUtils.getInstance().initmTts(mContext, "请输入手机号");
+				VoiceUtils.getInstance().initmTts("请输入手机号");
 			} else {
 				if (!isChinaPhoneLegal(phoneNumStr)) {
-					VoiceUtils.getInstance().initmTts(mContext, "手机号格式输入错误，请重新输入");
+					VoiceUtils.getInstance().initmTts("手机号格式输入错误，请重新输入");
 					myCourse_roomId_input.setText("");
 				} else {
 					checkPuoneNumIsMembership(phoneNumStr);
@@ -650,8 +649,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 	}
 
 	private void checkPuoneNumIsMembership(String phoneNumStr) {
-		String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNumStr + "&CcardId="
-				+ "&mid=" + mid;
+		String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNumStr + "&CcardId=" + "&mid=" + mid;
 		phoneNum = phoneNumStr;
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
@@ -659,6 +657,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 			public void onFailure(HttpException arg0, String arg1) {
 				httpGetFail();
 			}
+
 			@Override
 			public void onSuccess(ResponseInfo<String> arg0) {
 				if (!TextUtils.isEmpty(arg0.result)) {
@@ -668,7 +667,7 @@ public class BasketShoujiActitvty extends BaseAcitivity implements OnClickListen
 				}
 			}
 		});
-			
+
 	}
 
 }

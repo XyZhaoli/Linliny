@@ -33,8 +33,7 @@ public class VoiceUtils {
 	// 播放监听器
 	private SynthesizerListener mSynthesizerListener;
 
-	public void initmTts(Context context, final String msg) {
-
+	public void initmTts(final String msg) {
 		if (null == Listener) {
 			Listener = new InitListener() {
 				@Override
@@ -92,7 +91,7 @@ public class VoiceUtils {
 		}
 
 		if (null == mTts) {
-			mTts = SpeechSynthesizer.createSynthesizer(context, Listener);
+			mTts = SpeechSynthesizer.createSynthesizer(Util.getmContext(), Listener);
 			mTts.setParameter(SpeechConstant.VOICE_NAME, voicer);
 			mTts.setParameter(SpeechConstant.SPEED, "40");
 			mTts.setParameter(SpeechConstant.VOLUME, "80");

@@ -4,12 +4,14 @@ import java.math.BigDecimal;
 import java.text.DecimalFormat;
 
 import com.bumptech.glide.Glide;
+import com.iflytek.cloud.thirdparty.v;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
+import android.R.string;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -34,7 +36,9 @@ import android_serialport_api.sample.R;
 import uartJni.UartJniCard;
 import utils.ActivityManager;
 import utils.ThreadManager;
+import utils.Util;
 import utils.VoiceUtils;
+import utils.WXPayUtil;
 
 @SuppressLint("NewApi")
 public class IuPayListActivity extends BaseAcitivity implements OnClickListener {
@@ -42,11 +46,13 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	private static final String TAG = "IuPayListActivity";
 	private static final String BASE_URLS = "http://linliny.com/dingyifeng_web/";
 	private static final int CHECK_MEMBERSHIP_PAYFOR = 2;
+	protected static final int CREATE_CODE = 3;
 	Handler handlerNum = new Handler();
 	private UartJniCard mUartNativeCard = null;
 	private byte[] tempCardCmd = new byte[32];
 	private int sum = 0;
 	private Context mContext = IuPayListActivity.this;
+	private Intent mIntent;
 	private boolean isMembershipPay;
 	private boolean isRunning = false;
 	private boolean isDestory = false;
@@ -60,8 +66,10 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	private String totalPrice;
 	private String goodsInfo;
 	private String response;
-	private static String wechatPayUrls;
-	private static String zfb;
+	private String linliPayOno;
+	private StringBuffer wechatPayUrls = new StringBuffer();
+	private StringBuffer zfb = new StringBuffer();
+	private StringBuffer linliNyUrl;
 	private ImageView ivAlipay;
 	private ImageView ivWechat;
 	private ImageView huiyuanka;
@@ -70,7 +78,10 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	private ImageView payforBarcode;
 	private TextView tvPayforMode;
 	private TextView timerText;
+	private TextView tvRemind;
 	private AlertDialog alertDialog;
+	private AlertDialog linliDialog;
+	private Bitmap linlinyQRImage;
 
 	Handler handler = new Handler() {
 		public void handleMessage(android.os.Message msg) {
@@ -95,7 +106,6 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			}
 		};
 	};
-	private Intent mIntent;
 
 	@Override
 	public void onClick(View v) {
@@ -110,14 +120,16 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			payforBarcode.setImageBitmap(alipayPayBarcodeBitmap);
 			setIvAlpha(0.5f, 1.0f, 0.5f);
 			setTvText("支付宝");
+			tvRemind.setVisibility(View.INVISIBLE);
 			// 请求网络 查询是否支付成功
-			VoiceUtils.getInstance().initmTts(mContext, "请使用支付宝支付");
+			VoiceUtils.getInstance().initmTts("请使用支付宝支付");
 			break;
 		case R.id.weixin:
 			if (wechatPayBarcodeBitmap == null) {
 				wechatPayBarcodeBitmap = ZXingUtils.createQRImage(wechatUrl, 200, 200);
 			}
-			VoiceUtils.getInstance().initmTts(mContext, "请使用微信支付");
+			tvRemind.setVisibility(View.INVISIBLE);
+			VoiceUtils.getInstance().initmTts("请使用微信支付");
 			payforBarcode.setImageBitmap(wechatPayBarcodeBitmap);
 			setIvAlpha(1f, 0.5f, 0.5f);
 			setTvText("微信");
@@ -127,20 +139,73 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			tvPayforMode.setText(Html.fromHtml("请将您的" + "<font color='#1c86ee'>" + "会员卡" + "</font>" + "放置在感应区"));
 			isMembershipPay = true;
 			Glide.with(getApplicationContext()).load(R.drawable.membership_pay_icon).into(payforBarcode);
-			VoiceUtils.getInstance().initmTts(mContext, "请将您的会员卡放置在感应区");
+			VoiceUtils.getInstance().initmTts("请将您的会员卡放置在感应区");
+			tvRemind.setVisibility(View.VISIBLE);
 			break;
 		case R.id.iv_cancel_iupaylist:
 			IuPayListActivity.this.finish();
 			break;
-
+		case R.id.tv_remind:
+			showRemindDialog();
+			break;
 		default:
 			break;
 		}
 	}
 
+	private void showRemindDialog() {
+		if (isRunning) {
+			isDestory = true;
+		}
+
+		View view = View.inflate(mContext, R.layout.remind_scan_code_dialog, null);
+		final ImageView ivCode = (ImageView) view.findViewById(R.id.iv_code);
+		ThreadManager.getThreadPool().execute(new Runnable() {
+
+			@Override
+			public void run() {
+				runOnUiThread(new Runnable() {
+					@Override
+					public void run() {
+						if (linlinyQRImage != null) {
+							ivCode.setImageBitmap(linlinyQRImage);
+						}
+					}
+				});
+				HttpUtils httpUtils = new HttpUtils();
+				int i = 0;
+				while (i++ < 60) {
+					httpUtils.send(HttpMethod.GET,
+							"http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono=" + linliPayOno,
+							new RequestCallBack<String>() {
+
+								@Override
+								public void onFailure(HttpException arg0, String arg1) {
+									Log.e("onFailure", "onFailure" + arg1);
+								}
+
+								@Override
+								public void onSuccess(ResponseInfo<String> arg0) {
+									if(arg0.result.equals("5")) {
+										payforSuccess(arg0.result);
+									}
+									Log.e("onSuccess", "onSuccess" + arg0.result);
+								}
+							});
+					Util.delay(1000);
+				}
+				if (!IuPayListActivity.this.isDestroyed()) {
+					payforFail();
+					linliDialog.dismiss();
+				}
+			}
+		});
+		linliDialog = new AlertDialog.Builder(mContext).setView(view).create();
+		linliDialog.show();
+	}
+
 	/**
 	 * 检查会员卡的支付结果
-	 * 
 	 * @param string
 	 */
 	protected void parseMembershipRes(String string) {
@@ -148,20 +213,20 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			membershipPayforCode = utils.Util.parseJsonStr(string, "res");
 			if (membershipPayforCode.equals("0")) {
 				// 会员卡没有绑定
-				VoiceUtils.getInstance().initmTts(mContext, "您的会员卡还没有绑定，请您前往商城绑定会员卡");
+				VoiceUtils.getInstance().initmTts("您的会员卡还没有绑定，请您前往商城绑定会员卡");
 				utils.Util.DisplayToast(mContext, "请你前往商城绑定会员卡", R.drawable.warning);
 			} else if (membershipPayforCode.equals("-1")) {
-				VoiceUtils.getInstance().initmTts(mContext, "该会员卡不存在");
+				VoiceUtils.getInstance().initmTts("该会员卡不存在");
 				utils.Util.DisplayToast(mContext, "该会员卡不存在", R.drawable.warning);
 			} else if (membershipPayforCode.equals("3")) {
-				VoiceUtils.getInstance().initmTts(mContext, "您输入的密码有误");
+				VoiceUtils.getInstance().initmTts("您输入的密码有误");
 			} else if (membershipPayforCode.equals("2")) {
-				VoiceUtils.getInstance().initmTts(mContext, "会员卡余额不足，请您前往商城充值");
+				VoiceUtils.getInstance().initmTts("会员卡余额不足，请您前往商城充值");
 			} else if (membershipPayforCode.length() > 1) {
 				payforSuccess("success");
 			}
 		} else {
-			VoiceUtils.getInstance().initmTts(mContext, "支付失败，请您重试");
+			VoiceUtils.getInstance().initmTts("支付失败，请您重试");
 			utils.Util.DisplayToast(mContext, "支付失败，请您重试", R.drawable.warning);
 		}
 	}
@@ -186,7 +251,8 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		payforBarcode = (ImageView) findViewById(R.id.iv_QR_code_iupaylist);
 		timerText = (TextView) findViewById(R.id.timer);
 		tvPayforMode = (TextView) findViewById(R.id.tv_payfor_mode);
-
+		tvRemind = (TextView) findViewById(R.id.tv_remind);
+		tvRemind.setVisibility(View.INVISIBLE);
 		handler.post(new Runnable() {
 			@Override
 			public void run() {
@@ -200,7 +266,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 		ivAlipay.setOnClickListener(this);
 		ivWechat.setOnClickListener(this);
 		huiyuanka.setOnClickListener(this);
-
+		tvRemind.setOnClickListener(this);
 		setIvAlpha(1f, 0.5f, 0.5f);
 		setTvText("微信");
 	}
@@ -231,7 +297,8 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	}
 
 	private void initData() {
-		VoiceUtils.getInstance().initmTts(mContext, "请使用微信支付");
+		linliPayOno = WXPayUtil.getorderid();
+		VoiceUtils.getInstance().initmTts("请使用微信支付");
 		ActivityManager.getInstance().addActivity(IuPayListActivity.this);
 		getIntentStr();
 		getQRBitMap();
@@ -239,8 +306,17 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 
 	private void getQRBitMap() {
 		ThreadManager.getThreadPool().execute(new Runnable() {
+
 			@Override
 			public void run() {
+				linliNyUrl = new StringBuffer();
+				linliNyUrl.append(
+						"https://open.weixin.qq.com/connect/oauth2/authorize?appid=wx2783185b0a0d7d44&redirect_uri=http%3a%2f%2flinliny.com.cn%2f%2ftestBalPay.json%3fTotal=")
+						.append(totalPrice).append("%26Goods=").append(goodsInfo).append("%26mid=")
+						.append(Util.getMid()).append("%26ono").append(linliPayOno)
+						.append("&response_type=code&scope=snsapi_userinfo&state=STATE&connect_redirect=1#wechat_redirect");
+
+				linlinyQRImage = ZXingUtils.createQRImage(linliNyUrl.toString(), 200, 200);
 				wechatPayBarcodeBitmap = ZXingUtils.createQRImage(wechatUrl, 200, 200);
 				alipayPayBarcodeBitmap = ZXingUtils.createQRImage(alipayUrl, 200, 200);
 				handler.sendEmptyMessage(3);
@@ -261,7 +337,9 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 						httpUtils.configCurrentHttpCacheExpiry(1000);
 						while (i++ < 120) {
 							if (tvPayforMode.getText().toString().equals("请使用微信扫描上方二维码")) {
-								String wecatRes = httpUtils.sendSync(HttpMethod.GET, wechatPayUrls).readString();
+								Log.e("wechatPayUrls", wechatPayUrls.toString());
+								String wecatRes = httpUtils.sendSync(HttpMethod.GET, wechatPayUrls.toString())
+										.readString();
 								if (!TextUtils.isEmpty(wecatRes)) {
 									Log.e(TAG, wecatRes);
 									if (wecatRes.equals("SUCCESS") || wecatRes.equals("success")
@@ -272,7 +350,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 									}
 								}
 							} else if (tvPayforMode.getText().toString().equals("请使用支付宝扫描上方二维码")) {
-								String alipayRes = httpUtils.sendSync(HttpMethod.GET, zfb).readString();
+								String alipayRes = httpUtils.sendSync(HttpMethod.GET, zfb.toString()).readString();
 								if (!TextUtils.isEmpty(alipayRes)) {
 									Log.e(TAG, alipayRes);
 									if (alipayRes.equals("SUCCESS") || alipayRes.equals("success")
@@ -296,6 +374,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 						utils.Util.delay(5000);
 						IuPayListActivity.this.finish();
 					} catch (Exception e) {
+						e.printStackTrace();
 						payforFail();
 					}
 				}
@@ -350,7 +429,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	}
 
 	protected void payforSuccess(String res) {
-		VoiceUtils.getInstance().initmTts(getApplicationContext(), "支付成功");
+		VoiceUtils.getInstance().initmTts("支付成功");
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
@@ -407,7 +486,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	}
 
 	private void showMembershipPayforDialog(final long code) {
-		VoiceUtils.getInstance().initmTts(mContext, "请输入会员卡支付密码");
+		VoiceUtils.getInstance().initmTts("请输入会员卡支付密码");
 		View view = View.inflate(mContext, R.layout.menbership_card_pay_dialog, null);
 		Button btnConfirmPayfor = (Button) view.findViewById(R.id.bt_ok_membership_pay_dialog);
 		Button btnCancel = (Button) view.findViewById(R.id.bt_cancel_membership_pay_dialog);
@@ -441,7 +520,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 						@Override
 						public void run() {
 							utils.Util.DisplayToast(mContext, "请输入您的密码", R.drawable.warning);
-							VoiceUtils.getInstance().initmTts(mContext, "请您重新输入密码");
+							VoiceUtils.getInstance().initmTts("请您重新输入密码");
 						}
 					});
 				}
@@ -474,13 +553,13 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 	public void getIntentStr() {
 		mIntent = getIntent();
 		outTradeNo = mIntent.getStringExtra("outTradeNo").toString().trim();
-		zfb = "http://linliny.com/dingyifeng_web/QueryOrderAli.json?outTradeNo="
-				+ outTradeNo;
+		zfb = zfb.append("http://linliny.com/dingyifeng_web/QueryOrderAli.json?outTradeNo=").append(outTradeNo);
 		wechatUrl = mIntent.getStringExtra("rs").toString().trim();
 		alipayUrl = mIntent.getStringExtra("ZFurl").toString().trim();
 		Ono = mIntent.getStringExtra("Ono").toString().trim();
-		wechatPayUrls = "http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono="
-				+ Ono;
+
+		wechatPayUrls = wechatPayUrls.append("http://linliny.com/dingyifeng_web/QueryOrderState1.json?Ono=")
+				.append(Ono);
 		totalPrice = mIntent.getStringExtra("totalPrice").toString().trim();
 		goodsInfo = mIntent.getStringExtra("goodsInfo").toString().trim();
 	}
@@ -552,7 +631,7 @@ public class IuPayListActivity extends BaseAcitivity implements OnClickListener 
 			@Override
 			public void run() {
 				utils.Util.DisplayToast(mContext, "支付失败", R.drawable.warning);
-				VoiceUtils.getInstance().initmTts(mContext, "支付失败");
+				VoiceUtils.getInstance().initmTts("支付失败");
 			}
 		});
 	}

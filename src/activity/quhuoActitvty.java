@@ -101,16 +101,16 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	public void parseFaultCode(String string) {
 		if (utils.Util.parseJson(string, "checkFCode") == 0) {
 			utils.Util.DisplayToast(mContext, "取货码错误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts(mContext, "您输入的取货码有误");
+			VoiceUtils.getInstance().initmTts("您输入的取货码有误");
 		} else if (utils.Util.parseJson(string, "checkOrder") == 0) {
 			utils.Util.DisplayToast(mContext, "订单有误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts(mContext, "订单不存在");
+			VoiceUtils.getInstance().initmTts("订单不存在");
 		} else if (utils.Util.parseJson(string, "checkMid") == 0) {
 			utils.Util.DisplayToast(mContext, "不是该机器设备", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts(mContext, "提货的机器错误");
+			VoiceUtils.getInstance().initmTts("提货的机器错误");
 		} else if (utils.Util.parseJson(string, "orderDetailed") == 0) {
 			utils.Util.DisplayToast(mContext, "订单有误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts(mContext, "订单有误");
+			VoiceUtils.getInstance().initmTts("订单有误");
 		}
 	}
 
@@ -222,7 +222,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 		if (mUartNative != null) {
 			mUartNative.NativeThreadStop();
 		}
-		if(dialog != null) {
+		if (dialog != null) {
 			dialog.dismiss();
 		}
 		if (loadingDialog != null) {
@@ -333,7 +333,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	}
 
 	protected void str2voice(String string) {
-		VoiceUtils.getInstance().initmTts(getApplicationContext(), string);
+		VoiceUtils.getInstance().initmTts(string);
 	}
 
 	private void showProgressDialog() {
@@ -527,7 +527,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 				showProgressDialog();
 				sendTakeGoodCode(roomInput);
 			} else {
-				VoiceUtils.getInstance().initmTts(mContext, "请输入您的取货码");
+				VoiceUtils.getInstance().initmTts("请输入您的取货码");
 				utils.Util.DisplayToast(mContext, "请输入您的取货码", R.drawable.warning);
 			}
 			break;

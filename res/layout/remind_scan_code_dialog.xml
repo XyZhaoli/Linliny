@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="800dp"
+    android:layout_height="wrap_content"
+    android:background="#000"
+    android:gravity="center_vertical"
+    android:orientation="vertical" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="15dp"
+        android:text="请使用微信扫描下方二维码"
+        android:textColor="#fff"
+        android:textSize="32sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#ccc" />
+
+    <ImageView
+        android:id="@+id/iv_code"
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_gravity="center_horizontal"
+        android:scaleType="fitXY" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#ccc" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/bt_ok_membership_pay_dialog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#FFAB0A"
+            android:padding="20dp"
+            android:text="确    认"
+            android:textSize="24sp" />
+
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#ccc" />
+
+        <Button
+            android:id="@+id/bt_cancel_membership_pay_dialog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="#c0c0c0"
+            android:padding="20dp"
+            android:text="取    消"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+</LinearLayout>
