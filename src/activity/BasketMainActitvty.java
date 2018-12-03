@@ -2,17 +2,27 @@ package activity;
 
 import java.util.ArrayList;
 import java.util.List;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
-import utils.ActivityManager;
+import dialog.ByCardReturnBasketDialog;
+import dialog.ByPhoneNumReturnBasketDialog;
+import dialog.LinliUrlQrDialog;
+import utils.Util;
 import view.BannerLayout;
 
 public class BasketMainActitvty extends BaseAcitivity implements OnClickListener {
+
+	private LinliUrlQrDialog linliUrlQrDialog;
+	private ByPhoneNumReturnBasketDialog phoneNumReturnBasketDialog;
+	private ByCardReturnBasketDialog cardReturnBasketDialog;
+	private Handler handler;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -22,30 +32,40 @@ public class BasketMainActitvty extends BaseAcitivity implements OnClickListener
 	}
 
 	private void initView() {
+		handler = new Handler();
 		String title = getIntent().getStringExtra("title");
 		TextView tvTitle = (TextView) findViewById(R.id.return_goods_title);
 		tvTitle.setText(title);
-		BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner_in_getgoods);
-		List<Integer> res = new ArrayList<Integer>();
+		final BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner_in_getgoods);
+		final List<Integer> res = new ArrayList<Integer>();
 		res.add(R.drawable.iumain04);
 		res.add(R.drawable.iumain02);
 		res.add(R.drawable.iumain03);
-		List<String> titles = new ArrayList<String>();
+		final List<String> titles = new ArrayList<String>();
 		titles.add(" ");
 		titles.add(" ");
 		titles.add(" ");
+
 		if (bannerLayout1 != null) {
-			bannerLayout1.setViewRes(res, titles);
+			handler.post(new Runnable() {
+				@SuppressLint("NewApi")
+				@Override
+				public void run() {
+					if (!BasketMainActitvty.this.isDestroyed()) {
+						bannerLayout1.setViewRes(res, titles);
+					}
+				}
+			});
 		}
+
 		// 返回点击事件
 		findViewById(R.id.back).setOnClickListener(this);
-		// 注册\n会员
+		// 注册会员
 		findViewById(R.id.register).setOnClickListener(this);
-		// 手机号\n登陆
+		// 手机号登陆
 		findViewById(R.id.phone_log_in).setOnClickListener(this);
-		// 会员卡\n登陆
+		// 会员卡登陆
 		findViewById(R.id.vip_log_in).setOnClickListener(this);
-		ActivityManager.getInstance().addActivity(BasketMainActitvty.this);
 	}
 
 	@Override
@@ -62,16 +82,17 @@ public class BasketMainActitvty extends BaseAcitivity implements OnClickListener
 				startActivity(new Intent(BasketMainActitvty.this, IuMainActivity.class));
 				break;
 			case R.id.register:
-				Intent intent = new Intent(BasketMainActitvty.this, BaskethuiyuanActitvty.class);
-				startActivity(intent);
+				linliUrlQrDialog = new LinliUrlQrDialog(BasketMainActitvty.this, R.style.MyDialogStyle);
+				Util.showCustomDialog(linliUrlQrDialog, BasketMainActitvty.this);
 				break;
 			case R.id.phone_log_in:
-				Intent intent1 = new Intent(BasketMainActitvty.this, BasketShoujiActitvty.class);
-				startActivity(intent1);
+				phoneNumReturnBasketDialog = new ByPhoneNumReturnBasketDialog(BasketMainActitvty.this,
+						R.style.MyDialogStyle);
+				Util.showCustomDialog(phoneNumReturnBasketDialog, BasketMainActitvty.this);
 				break;
 			case R.id.vip_log_in:
-				Intent intent2 = new Intent(BasketMainActitvty.this, BaskethuiyuankaActitvty.class);
-				startActivity(intent2);
+				cardReturnBasketDialog = new ByCardReturnBasketDialog(BasketMainActitvty.this, R.style.MyDialogStyle);
+				Util.showCustomDialog(cardReturnBasketDialog, BasketMainActitvty.this);
 				break;
 			default:
 				break;
@@ -80,4 +101,18 @@ public class BasketMainActitvty extends BaseAcitivity implements OnClickListener
 			Log.e("isFastClick", "isFastClick");
 		}
 	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		Util.disMissDialog(linliUrlQrDialog, BasketMainActitvty.this);
+		Util.disMissDialog(phoneNumReturnBasketDialog, BasketMainActitvty.this);
+		Util.disMissDialog(cardReturnBasketDialog, BasketMainActitvty.this);
+	}
+
+	@Override
+	public void onActivityDectory() {
+		BasketMainActitvty.this.finish();
+	}
+
 }

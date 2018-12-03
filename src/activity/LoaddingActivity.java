@@ -61,7 +61,7 @@ public class LoaddingActivity extends BaseAcitivity {
 		mUartNative = new Uartjni() {
 			@Override
 			public void onNativeCallback(final byte[] arg1) {
-				setTime(120);
+				setTime(240);
 				handler.post(new Runnable() {
 					@Override
 					public void run() {
@@ -69,7 +69,6 @@ public class LoaddingActivity extends BaseAcitivity {
 							switch (arg1[2]) {
 							// 成功
 							case 0:
-								str2voice("正在准备出货，请稍等");
 								break;
 							// 出货失败，发送的命令格式错误
 							case (byte) 0xff:
@@ -99,7 +98,7 @@ public class LoaddingActivity extends BaseAcitivity {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
-				str2voice("机器正忙，出货失败，请您稍后再试");
+				str2Voice("机器正忙，出货失败，请您稍后再试");
 			}
 		});
 		switch (b) {
@@ -157,7 +156,7 @@ public class LoaddingActivity extends BaseAcitivity {
 		// 正在开门
 		case 0x04:
 			if (MachineSateCode.get() != 4) {
-				str2voice("正在准备出货，请稍等");
+				str2Voice("正在准备出货，请稍等");
 			}
 			MachineSateCode.set(4);
 			break;
@@ -168,7 +167,7 @@ public class LoaddingActivity extends BaseAcitivity {
 					@Override
 					public void run() {
 						try {
-							str2voice(goodsPositions.get(shipmentCount - 1).getYname() + "出货成功，请您注意取货");
+							str2Voice(goodsPositions.get(shipmentCount - 1).getYname() + "出货成功，请您注意取货");
 							tvInfo.setText(goodsPositions.get(shipmentCount - 1).getYname() + "出货成功，请您注意取货");
 						} catch (Exception e) {
 
@@ -181,7 +180,7 @@ public class LoaddingActivity extends BaseAcitivity {
 		// 正在关门
 		case 0x06:
 			if (MachineSateCode.get() != 6) {
-				str2voice("正在关门，请您注意安全，防止夹手");
+				str2Voice("正在关门，请您注意安全，防止夹手");
 			}
 			MachineSateCode.set(6);
 			break;
@@ -246,14 +245,19 @@ public class LoaddingActivity extends BaseAcitivity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.e("onDestroy", "onDestroy");
-		if (mUartNative != null) {
-			mUartNative.NativeThreadStop();
-		}
+		JniThreadStop();
 	}
-
-	protected void str2voice(String string) {
-		VoiceUtils.getInstance().initmTts( string);
+	
+	private void JniThreadStop() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (mUartNative != null) {
+					mUartNative.NativeThreadStop();
+					mUartNative = null;
+				}
+			}
+		});
 	}
 
 	// 出货的准备
@@ -264,20 +268,31 @@ public class LoaddingActivity extends BaseAcitivity {
 		payfor = getIntent().getStringExtra("payfor");
 		mid = utils.Util.getMid();
 		shoppingCarManager = ShoppingCarManager.getInstence();
-		parseGoodsInfo(getIntent().getStringExtra("goodsInfo"));
+		MachineSateCode.set(-1);
+		final String goodsInfo = getIntent().getStringExtra("goodsInfo");
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
 					shipmentCount = 0;
+					parseGoodsInfo(goodsInfo);
 					for (GoodsPosition goodsPosition : goodsPositions) {
 						cycleCount = 0;
-						while (MachineSateCode.get() != 1) {
-							// 判断机器此时的状态
+						while (true) {
+							if(MachineSateCode.get() == 1 ) {
+								break;
+							}
+							if(MachineSateCode.get() == 2) {
+								break;
+							}
+							// 判断机此时的状态
 							mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
-							if (cycleCount++ > 80) {
+							if (cycleCount++ > 150){
 								// TODO 注意这里的时，循环次数的问题
 								break;
+							}
+							if(cycleCount == 120) {
+								str2Voice("请立即将货物取出");
 							}
 							utils.Util.delay(1000);
 						}
@@ -286,7 +301,6 @@ public class LoaddingActivity extends BaseAcitivity {
 						int rowNum = goodsPosition.getRowNum();
 						byte[] command = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd, rowNum,
 								columnNum);
-						mUartNative.UartWriteCmd(command, command.length);
 						// 延时100毫秒
 						utils.Util.delay(200);
 						// TODO 正在出货 发送下一个出货命令的时候 要注意询问机器此时的状态；
@@ -302,7 +316,7 @@ public class LoaddingActivity extends BaseAcitivity {
 					// TODO
 					while (true) {
 						utils.Util.delay(1000);
-						if (cycleCount++ > 60) {
+						if (cycleCount++ > 120) {
 							break;
 						}
 						mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
@@ -310,7 +324,7 @@ public class LoaddingActivity extends BaseAcitivity {
 							break;
 						}
 					}
-					str2voice("机器出货完成, 感谢您的本次购物");
+					str2Voice("机器出货完成, 感谢您的本次购物");
 					removeInventory();
 					ActivityManager.getInstance().addActivity(LoaddingActivity.this);
 					ActivityManager.getInstance().finshAllActivity();
@@ -370,5 +384,22 @@ public class LoaddingActivity extends BaseAcitivity {
 	@Override
 	public void changeTvTime(int time) {
 
+	}
+	
+	
+	private void str2Voice(final String string) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (!TextUtils.isEmpty(string)) {
+					VoiceUtils.getInstance().initmTts(string);
+				}
+			}
+		});
+	}
+
+	@Override
+	public void onActivityDectory() {
+		LoaddingActivity.this.finish();
 	}
 }

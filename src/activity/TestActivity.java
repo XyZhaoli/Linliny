@@ -2,6 +2,7 @@ package activity;
 
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.RequestParams;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
@@ -10,14 +11,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
-import utils.VoiceUtils;
 
 public class TestActivity extends Activity {
 
@@ -27,12 +27,30 @@ public class TestActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mContext = TestActivity.this;
-		setContentView(R.layout.dialog_seemore);
-		findViewById(R.id.iv_arrow_dialog_seemore).setOnClickListener(new OnClickListener() {
+		setContentView(R.layout.activity_test);
+		HttpUtils httpUtils = new HttpUtils();
+		RequestParams params = new RequestParams();
+		params.addBodyParameter("Fcode", "0x09");
+		params.addBodyParameter("Fname", "0x08");
+		params.addBodyParameter("Fcontent", "参考故障名称");
+		params.addBodyParameter("Fresolve", "暂无");
+		params.addBodyParameter("Funwound", "否");
+		params.addBodyParameter("Mid", utils.Util.getMid());
+		String Url = "http://linliny.com.cn/AddFailure.json?Fcode=0x09&Fname=0x08&Fcontent=参考故障名称&Fresolve=暂无&Funwound=0&Mid=64";
+		httpUtils.send(HttpMethod.POST, Url, new RequestCallBack<String>() {
+
 			@Override
-			public void onClick(View v) {
-				showTestDialog();
+			public void onFailure(HttpException arg0, String arg1) {
+				// TODO Auto-generated method stub
+				Log.e("onFailure", arg1);
+
+			}
+
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				// TODO Auto-generated method stub
+				Log.e("onSuccess", arg0.result.toString());
+
 			}
 		});
 	}

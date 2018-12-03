@@ -43,8 +43,6 @@ import android_serialport_api.aa;
 import android_serialport_api.sample.R;
 import domain.AlreadyToBuyGoods;
 import domain.ConstantCmd;
-import uartJni.Uartjni;
-import utils.ActivityManager;
 import utils.ShoppingCarManager;
 import utils.ThreadManager;
 import utils.VoiceUtils;
@@ -57,7 +55,6 @@ import view.BannerLayout;
 @SuppressLint("NewApi")
 public class GoodsDetailsActivity extends FragmentActivity implements OnItemClickListener, View.OnClickListener {
 	private static final int TIME = 420;
-	protected static final int MACHINE_HAVE_FAULT = 0;
 	private static final int GET_GOODS_NUM = 4;
 	protected static int COUNT_DOWN_TIME = TIME;
 	List<PersionInfo> listinfoInfos = new ArrayList<PersionInfo>();
@@ -73,12 +70,10 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	private static int[] locations;
 	private GoodsNumReceiver goodsNumReceiver;
 	private TextView tvTime;
-	private Uartjni mUartNative;
 	private Context mContext = GoodsDetailsActivity.this;
-	private boolean isTakeGoods;
 	private MyHandler handler = new MyHandler(mContext);
 	private ImageView ivShoppingCar;
-
+	private boolean isPause;
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
@@ -94,13 +89,8 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 		initBroadcast();
 		initView();
 		initData();
-		initSerial();
 		initCountDown();
 		hideBottomUIMenu();
-	}
-
-	private void sendCmd() {
-		mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 	}
 
 	@Override
@@ -109,116 +99,6 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 		return super.dispatchTouchEvent(ev);
 	}
 
-	private void initSerial() {
-		mUartNative = new Uartjni() {
-			@Override
-			public void onNativeCallback(final byte[] arg1) {
-				if (arg1.length >= 4) {
-					switch (arg1[2]) {
-					case 0x10:
-						parseMachineStateCode(arg1[3], arg1[4]);
-						break;
-					default:
-						break;
-					}
-				}
-				handler.sendEmptyMessage(3);
-			}
-		};
-		mUartNative.nativeInitilize();
-		mUartNative.BoardThreadStart();
-	}
-
-	protected void parseMachineStateCode(final byte cmd, final byte arg1) {
-		switch (cmd) {
-		// 待机状态
-		case 0x01:
-			isTakeGoods = true;
-			break;
-		// 待机转动状态
-		case 0x02:
-			isTakeGoods = false;
-			break;
-		// 正在定位
-		case 0x03:
-			isTakeGoods = false;
-			break;
-		// 正在开门
-		case 0x04:
-			isTakeGoods = false;
-			break;
-		// 等待取物状态
-		case 0x05:
-			isTakeGoods = false;
-			break;
-		// 正在关门
-		case 0x06:
-			isTakeGoods = false;
-			break;
-		// 补货状态
-		case 0x07:
-			isTakeGoods = false;
-			break;
-		// 测试动作状态
-		case 0x08:
-			isTakeGoods = false;
-			break;
-		// 故障状态
-		case 0x09:
-			// TODO 此处提醒用户此时机器处于故障状态；不能出货；
-			// 我们需要分析此时的故障的状态，然后上报服务器
-			parseMachineFault(arg1);
-			break;
-		// 还篮子状态
-		case 0x10:
-			isTakeGoods = false;
-			break;
-		default:
-			break;
-		}
-		if (!isTakeGoods) {
-			utils.Util.sendMessage(handler, MACHINE_HAVE_FAULT);
-		}
-	}
-
-	protected void parseMachineFault(byte b) {
-		switch (b) {
-		// 定位故障(主电机或位置光电开关故障）
-		case 0x01:
-			isTakeGoods = false;
-			break;
-		// 开门故障
-		case 0x02:
-			isTakeGoods = false;
-			break;
-		// 关门故障
-		case 0x03:
-			isTakeGoods = false;
-			break;
-		// 防夹传感器故障
-		case 0x04:
-			isTakeGoods = false;
-			break;
-		// 制冷故障
-		case 0x05:
-			isTakeGoods = true;
-			break;
-		// 加湿故障（缺水或长期湿度达不到设定值）
-		case 0x06:
-			isTakeGoods = true;
-			break;
-		// 其他故障
-		case 0x07:
-			isTakeGoods = false;
-			break;
-		// 主电机故障
-		case 0x08:
-			isTakeGoods = false;
-			break;
-		default:
-			break;
-		}
-	}
 
 	// 开启倒计时
 	private void initCountDown() {
@@ -228,13 +108,14 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	@Override
 	protected void onRestart() {
 		super.onRestart();
+		isPause = false;
 		COUNT_DOWN_TIME = TIME;
 	}
 
 	private void initData() {
-		ActivityManager.getInstance().addActivity(GoodsDetailsActivity.this);
 		HttpUtils httpUtils = new HttpUtils();
-		httpUtils.send(HttpMethod.GET, "http://linliny.com/dingyifeng_web/getfenzhuSan.json",
+		httpUtils.configCurrentHttpCacheExpiry(10);
+		httpUtils.send(HttpMethod.GET, ConstantCmd.BASE_URLS + "getfenzhuSan.json",
 				new RequestCallBack<String>() {
 					@Override
 					public void onFailure(HttpException arg0, String arg1) {
@@ -242,7 +123,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 							@Override
 							public void run() {
 								utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts("网络错误，请重试");
+								str2Voice("网络错误，请重试");
 							}
 						});
 					}
@@ -275,7 +156,10 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							ActivityManager.getInstance().finshAllActivity();
+							GoodsDetailsActivity.this.finish();
+							if(!isPause) {
+								GoodsDetailsActivity.this.finish();
+							}
 						}
 					});
 				}
@@ -301,18 +185,28 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 		});
 	}
 
+	private void str2Voice(final String string) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (!TextUtils.isEmpty(string)) {
+					VoiceUtils.getInstance().initmTts(string);
+				}
+			}
+		});
+	}
+
 	protected void httpGetFail() {
 		runOnUiThread(new Runnable() {
 			@Override
 			public void run() {
 				utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
-				VoiceUtils.getInstance().initmTts("网络错误，请重试");
+				str2Voice("网络错误，请重试");
 			}
 		});
 	}
 
 	private void initBroadcast() {
-
 		goodsNumReceiver = new GoodsNumReceiver();
 		IntentFilter intentFiltet = new IntentFilter();
 		// 设置广播的名字（设置Action，可以添加多个要监听的动作）
@@ -326,7 +220,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	 */
 	private void initView() {
 		tvTime = (TextView) findViewById(R.id.tv_time_goodsdetails_activity);
-		BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner2);
+		final BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner2);
 		listView = (ListView) findViewById(R.id.listview);
 		startAnimation((ImageView) findViewById(R.id.iv_arrow_goodsdetail));
 		ivShoppingCar = (ImageView) findViewById(R.id.Shopping);
@@ -338,17 +232,21 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 		ivShoppingCar.setOnClickListener(this);
 
 		tvTitle.setText(getIntent().getStringExtra("title"));
-		List<Integer> res = new ArrayList<Integer>();
+		final List<Integer> res = new ArrayList<Integer>();
 		res.add(R.drawable.viewpage_1);
 		res.add(R.drawable.viewpage_2);
 		res.add(R.drawable.viewpage_3);
-
-		List<String> titles = new ArrayList<String>();
+		final List<String> titles = new ArrayList<String>();
 		titles.add(" ");
 		titles.add(" ");
 		titles.add(" ");
 		if (bannerLayout1 != null) {
-			bannerLayout1.setViewRes(res, titles);
+			handler.post(new Runnable() {
+				@Override
+				public void run() {
+					bannerLayout1.setViewRes(res, titles);
+				}
+			});
 		}
 	}
 
@@ -395,31 +293,22 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
-			case MACHINE_HAVE_FAULT:
-				utils.Util.DisplayToast(mWeakReference.get(), "机器处于故障状态", R.drawable.fail);
-				VoiceUtils.getInstance().initmTts( "机器处于故障状态, 请你稍后进行购买");
-				break;
 			case 2:
 				parseMessage(msg.obj.toString());
 				break;
-			case 3:
-				if (!isTakeGoods) {
-					VoiceUtils.getInstance().initmTts("机器故障，正在调试");
-				}
-				if (mUartNative != null) {
-					mUartNative.NativeThreadStop();
-				}
 			case GET_GOODS_NUM:
-				badgeView.setText(String.valueOf(msg.obj.toString()));
-				badgeView.setTextSize(20f); // 设置文字的大小
-				badgeView.setBadgePosition(BadgeView.POSITION_TOP_RIGHT);// 设置在右上角
-				badgeView.setTextColor(Color.WHITE); // 字体的设置颜色
-				badgeView.show(); // 显示
+				// TODO 注意空指针异常
+				if (msg.obj != null) {
+					badgeView.setText(String.valueOf(msg.obj.toString()));
+					badgeView.setTextSize(20f); // 设置文字的大小
+					badgeView.setBadgePosition(BadgeView.POSITION_TOP_RIGHT);// 设置在右上角
+					badgeView.setTextColor(Color.WHITE); // 字体的设置颜色
+					badgeView.show(); // 显示
+				}
 				break;
 			default:
 				break;
 			}
-
 		}
 	}
 
@@ -438,6 +327,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 			unregisterReceiver(goodsNumReceiver);
 		}
 	}
+
 
 	protected void parseMessage(String str) {
 		if (!TextUtils.isEmpty(str) && !GoodsDetailsActivity.this.isDestroyed()) {
@@ -484,7 +374,6 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	@Override
 	protected void onResume() {
 		super.onResume();
-		sendCmd();
 		COUNT_DOWN_TIME = TIME;
 	}
 
@@ -493,7 +382,8 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	 */
 	protected void hideBottomUIMenu() {
 		// 隐藏虚拟按键，并且全屏
-		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower api
+		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower
+																		// api
 			View v = this.getWindow().getDecorView();
 			v.setSystemUiVisibility(View.GONE);
 		} else if (Build.VERSION.SDK_INT >= 19) {
@@ -508,9 +398,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (mUartNative != null) {
-			mUartNative.NativeThreadStop();
-		}
+		isPause = true;
 	}
 
 	public int[] getLocations() {

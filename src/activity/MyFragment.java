@@ -18,8 +18,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.text.TextUtils;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -40,16 +38,21 @@ import android.widget.Toast;
 import android_serialport_api.PersionInfo;
 import android_serialport_api.aa;
 import android_serialport_api.sample.R;
+import dialog.GoodsDetailDialog;
 import domain.AlreadyToBuyGoods;
+import domain.ConstantCmd;
 import domain.GetGoodsJsonInfo;
 import domain.Goods;
 import utils.GsonUtils;
 import utils.ShoppingCarManager;
+import utils.ThreadManager;
+import utils.Util;
 import utils.VoiceUtils;
 
 @SuppressLint({ "NewApi", "HandlerLeak", "InflateParams" })
 public class MyFragment extends Fragment implements OnItemClickListener {
 
+	protected static final int SET_GRIDVIEW = 1;
 	private GridView gview;
 	private List<Map<String, Object>> data_list;
 	private SimpleAdapter sim_adapter;
@@ -61,62 +64,80 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	private GoodsDetailsActivity activity;
 	private FrameLayout layout;
 	private String mid;
+	private GoodsDetailDialog goodsDetailDialog;
 
 	class MyHandler extends Handler {
 		@Override
 		public void handleMessage(Message msg) {
-			parseMessage((String) msg.obj);
+			switch (msg.what) {
+			case 0:
+				parseMessage((String) msg.obj);
+				break;
+			case SET_GRIDVIEW:
+				setGridView();
+				break;
+			default:
+				break;
+			}
 		}
 	}
 
-	public void parseMessage(String str) {
+	public void parseMessage(final String str) {
 		if (!TextUtils.isEmpty(str)) {
-			GetGoodsJsonInfo parseJsonWithGson = GsonUtils.parseJsonWithGson(str, GetGoodsJsonInfo.class);
-			goodsList = parseJsonWithGson.getGoodsList();
-			shoppingCarManager.setFromNetWorkGoods(goodsList);
-			List<Map<String, Object>> list = aa.listKeyMaps(str);
-			// 获取分类文字
-			PersionInfo info = (PersionInfo) getArguments().getSerializable("info");
-			String data = info.getNameString();
-			// 列表分类显示
-			for (Map<String, Object> map : list) {
-				map.put("Pic", (String) map.get("Picture"));
-				if (map.get("YTname").equals(data)) {
-					data_list.add(map);
-				} else if (data == null || data.equals("全部商品")) {
-					data_list = list;
-				}
-			}
-
-			// 新建适配器
-			String[] from = { "Pic", "Yname", "Price" };
-			int[] to = { R.id.image, R.id.text, R.id.Gprice };
-			if (data_list != null) {
-				sim_adapter = new MySimpleAdapter(data_list, R.layout.item, from, to);
-				sim_adapter.setViewBinder(new ViewBinder() {
-					public boolean setViewValue(View view, Object data, String textRepresentation) {
-						// 判断是否为我们要处理的对象
-						if (view instanceof ImageView && !TextUtils.isEmpty(data.toString())) {
-							ImageView iv = (ImageView) view;
-							// 如果这个图片的URL包含+-+，那么就说明这个商品的图像有多个图片
-							String string;
-							try {
-								string = utils.Util.parseImageUrl(data.toString())[0];
-							} catch (Exception e) {
-								string = data.toString();
-							}
-							if (string != null) {
-								Glide.with(getActivity()).load(string).into(iv);
-							}
-							return true;
-						} else {
-							return false;
+			ThreadManager.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					GetGoodsJsonInfo parseJsonWithGson = GsonUtils.parseJsonWithGson(str, GetGoodsJsonInfo.class);
+					goodsList = parseJsonWithGson.getGoodsList();
+					shoppingCarManager.setFromNetWorkGoods(goodsList);
+					List<Map<String, Object>> list = aa.listKeyMaps(str);
+					// 获取分类文字
+					PersionInfo info = (PersionInfo) getArguments().getSerializable("info");
+					String data = info.getNameString();
+					// 列表分类显示
+					for (Map<String, Object> map : list) {
+						map.put("Pic", (String) map.get("Picture"));
+						if (map.get("YTname").equals(data)) {
+							data_list.add(map);
+						} else if (data == null || data.equals("全部商品")) {
+							data_list = list;
 						}
 					}
-				});
-				// 配置适配器
-				gview.setAdapter(sim_adapter);
-			}
+					Util.sendMessage(handler, SET_GRIDVIEW);
+				}
+			});
+		}
+	}
+
+	public void setGridView() {
+		// 新建适配器
+		String[] from = { "Pic", "Yname", "Price" };
+		int[] to = { R.id.image, R.id.text, R.id.Gprice };
+		if (data_list != null) {
+			sim_adapter = new MySimpleAdapter(data_list, R.layout.item, from, to);
+			sim_adapter.setViewBinder(new ViewBinder() {
+				public boolean setViewValue(View view, Object data, String textRepresentation) {
+					// 判断是否为我们要处理的对象
+					if (view instanceof ImageView && !TextUtils.isEmpty(data.toString())) {
+						ImageView iv = (ImageView) view;
+						// 如果这个图片的URL包含+-+，那么就说明这个商品的图像有多个图片
+						String string;
+						try {
+							string = utils.Util.parseImageUrl(data.toString())[0];
+						} catch (Exception e) {
+							string = data.toString();
+						}
+						if (string != null) {
+							Glide.with(getActivity()).load(string).into(iv);
+						}
+						return true;
+					} else {
+						return false;
+					}
+				}
+			});
+			// 配置适配器
+			gview.setAdapter(sim_adapter);
 		}
 	}
 
@@ -140,7 +161,8 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 		shoppingCarManager = ShoppingCarManager.getInstence();
 		mid = utils.Util.getMid();
 		HttpUtils httpUtils = new HttpUtils();
-		httpUtils.send(HttpMethod.GET, "http://linliny.com/dingyifeng_web/getshangpingchaxun1.json?Mid=" + mid,
+		httpUtils.configCurrentHttpCacheExpiry(0);
+		httpUtils.send(HttpMethod.GET, ConstantCmd.BASE_URLS + "getshangpingchaxun1.json?Mid=" + mid,
 				new RequestCallBack<String>() {
 
 					@Override
@@ -149,7 +171,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 							@Override
 							public void run() {
 								utils.Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
-								VoiceUtils.getInstance().initmTts("网络错误，请重试");
+								str2Voice("网络错误，请重试");
 							}
 						});
 					}
@@ -157,7 +179,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 					@Override
 					public void onSuccess(ResponseInfo<String> arg0) {
 						if (!TextUtils.isEmpty(arg0.result)) {
-							utils.Util.sendMessage(handler, 1, arg0.result);
+							utils.Util.sendMessage(handler, 0, arg0.result);
 						}
 					}
 				});
@@ -169,17 +191,11 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 		if (utils.Util.isFastClick()) {
-			// TODO 这里需要改变
-			Intent intent = new Intent(getActivity(), DialogActivity.class);
-			String url;
-			try {
-				url = utils.Util.parseImageUrl(String.valueOf(data_list.get(position).get("Picture")))[1];
-			} catch (Exception e) {
-				url = String.valueOf(data_list.get(position).get("Picture"));
+			goodsDetailDialog = new GoodsDetailDialog(getActivity(), R.style.MyDialogStyle,
+					data_list.get(position).get("Yid").toString());
+			if (!getActivity().isDestroyed()) {
+				goodsDetailDialog.show();
 			}
-			intent.putExtra("Picture", url);
-			intent.putExtra("Yid", String.valueOf(data_list.get(position).get("Yid")));
-			startActivity(intent);
 		}
 	}
 
@@ -296,6 +312,25 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 		Intent intent = new Intent();
 		intent.setAction("getGoodsNumAction");
 		getActivity().sendBroadcast(intent);
+	}
+
+	private void str2Voice(final String string) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (!TextUtils.isEmpty(string)) {
+					VoiceUtils.getInstance().initmTts(string);
+				}
+			}
+		});
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+		if (goodsDetailDialog != null && !getActivity().isDestroyed()) {
+			goodsDetailDialog.dismiss();
+		}
 	}
 
 }

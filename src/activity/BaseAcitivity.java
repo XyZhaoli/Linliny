@@ -69,7 +69,7 @@ public abstract class BaseAcitivity extends Activity {
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							BaseAcitivity.this.finish();
+							onActivityDectory();
 						}
 					});
 				}
@@ -78,6 +78,8 @@ public abstract class BaseAcitivity extends Activity {
 	}
 
 	public abstract void changeTvTime(int time);
+
+	public abstract void onActivityDectory();
 
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {

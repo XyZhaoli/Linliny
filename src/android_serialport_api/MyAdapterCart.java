@@ -27,12 +27,11 @@ public class MyAdapterCart extends BaseAdapter implements View.OnClickListener {
 	private ShoppingCarActivity iu;
 	private List<ViewHolder> viewHolders = new ArrayList<MyAdapterCart.ViewHolder>();
 
-	private List<AlreadyToBuyGoods> buyGoods = new ArrayList<AlreadyToBuyGoods>();
+	private List<AlreadyToBuyGoods> buyGoods ;
 
-	public MyAdapterCart() {
+	public MyAdapterCart(List<AlreadyToBuyGoods> list) {
 		super();
-		buyGoods.clear();
-		buyGoods.addAll(ShoppingCarManager.getInstence().getShoppingCarGoods());
+		this.buyGoods = list;
 	}
 
 	@Override

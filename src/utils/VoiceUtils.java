@@ -1,5 +1,7 @@
 package utils;
 
+import java.util.concurrent.TimeoutException;
+
 import com.iflytek.cloud.ErrorCode;
 import com.iflytek.cloud.InitListener;
 import com.iflytek.cloud.SpeechConstant;
@@ -97,7 +99,11 @@ public class VoiceUtils {
 			mTts.setParameter(SpeechConstant.VOLUME, "80");
 			mTts.setParameter(SpeechConstant.ENGINE_TYPE, SpeechConstant.TYPE_CLOUD);
 		} else {
-			mTts.startSpeaking(msg, mSynthesizerListener);
+			try {
+				mTts.startSpeaking(msg, mSynthesizerListener);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 
 	}

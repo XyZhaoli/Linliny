@@ -78,6 +78,7 @@
             android:padding="10dp"
             android:text="忘记带会员卡？"
             android:textColor="@drawable/text_seletor"
+            android:visibility="invisible"
             android:textSize="24sp" />
 
     </RelativeLayout>

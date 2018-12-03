@@ -4,13 +4,10 @@ import android.view.View;
 import android.view.View.OnClickListener;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.lidroid.xutils.HttpUtils;
@@ -39,6 +36,7 @@ import uartJni.Uartjni;
 import utils.ActivityManager;
 import utils.CommandPackage;
 import utils.ThreadManager;
+import utils.Util;
 import utils.VoiceUtils;
 
 public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
@@ -57,6 +55,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	ImageView number_clear_last;
 	private MyHandler handler;
 	private static final int TAKE_GOODS_CODE = 0;
+	private static final int SEND_CMD = 1;
 	private Uartjni mUartNative;
 	private static int MachineSateCode;
 	private int cycleCount;
@@ -65,6 +64,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	private Context mContext = quhuoActitvty.this;
 	private AlertDialog dialog;
 	private AlertDialog loadingDialog;
+	private static int shipmentCount;
 
 	class MyHandler extends Handler {
 		@Override
@@ -77,11 +77,13 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 					parseFaultCode(msg.obj.toString());
 				} else if (!TextUtils.isEmpty(msg.obj.toString())) {
 					parseTakeGoodsCode(msg.obj.toString());
-					showLoadingDialog();
-					str2voice("准备出货，请稍等");
-					// 发送出货命令
-					sendShipmentCmd();
 				}
+				break;
+			case SEND_CMD:
+				showLoadingDialog();
+				str2voice("准备出货，请稍等");
+				// 发送出货命令
+				sendShipmentCmd();
 				break;
 			default:
 				break;
@@ -101,40 +103,48 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	public void parseFaultCode(String string) {
 		if (utils.Util.parseJson(string, "checkFCode") == 0) {
 			utils.Util.DisplayToast(mContext, "取货码错误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts("您输入的取货码有误");
+			str2voice("您输入的取货码有误");
 		} else if (utils.Util.parseJson(string, "checkOrder") == 0) {
 			utils.Util.DisplayToast(mContext, "订单有误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts("订单不存在");
+			str2voice("订单不存在");
 		} else if (utils.Util.parseJson(string, "checkMid") == 0) {
 			utils.Util.DisplayToast(mContext, "不是该机器设备", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts("提货的机器错误");
+			str2voice("提货的机器错误");
 		} else if (utils.Util.parseJson(string, "orderDetailed") == 0) {
 			utils.Util.DisplayToast(mContext, "订单有误", R.drawable.warning);
-			VoiceUtils.getInstance().initmTts("订单有误");
+			str2voice("订单有误");
+		} else if (utils.Util.parseJson(string, "checkGrid") == 0) {
+			utils.Util.DisplayToast(mContext, "未知错误，请联系客服处理", R.drawable.warning);
+			str2voice("未知错误，请联系客服处理");
 		}
 	}
 
-	public void parseTakeGoodsCode(String str) {
-		try {
-			JSONObject jsonObject = new JSONObject(str);
-			JSONArray js = jsonObject.getJSONArray("returnData");
-			String string = js.getString(0);
-			Map<String, Object> map = utils.Util.getMap(string);
-			ono = map.get("Ono").toString();
-			String goodsPositionsStr = map.get("Untiekes").toString();
-			if (!TextUtils.isEmpty(goodsPositionsStr)) {
-				String[] positionStrArray = goodsPositionsStr.split(",");
-				for (int i = 0; i < positionStrArray.length; i++) {
-					String[] rowAndColumnStr = positionStrArray[i].split("-");
-					GoodsPosition goodsPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
-							Integer.parseInt(rowAndColumnStr[1]));
-					goodsPositions.add(goodsPosition);
+	public void parseTakeGoodsCode(final String str) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					JSONObject jsonObject = new JSONObject(str);
+					JSONArray js = jsonObject.getJSONArray("returnData");
+					String string = js.getString(0);
+					Map<String, Object> map = utils.Util.getMap(string);
+					ono = map.get("Ono").toString();
+					String goodsPositionsStr = map.get("Untiekes").toString();
+					if (!TextUtils.isEmpty(goodsPositionsStr)) {
+						String[] positionStrArray = goodsPositionsStr.split(",");
+						for (int i = 0; i < positionStrArray.length; i++) {
+							String[] rowAndColumnStr = positionStrArray[i].split("-");
+							GoodsPosition goodsPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
+									Integer.parseInt(rowAndColumnStr[1]));
+							goodsPositions.add(goodsPosition);
+						}
+					}
+					Util.sendMessage(handler, SEND_CMD);
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 			}
-			sendShipmentCmd();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		});
 	}
 
 	public void initData() {
@@ -146,11 +156,12 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 		mUartNative = new Uartjni() {
 			@Override
 			public void onNativeCallback(final byte[] arg1) {
+				setTime(140);
 				if (arg1.length >= 4) {
 					switch (arg1[2]) {
 					// 成功
 					case 0:
-						str2voice("机器马上准备出货了，请稍等");
+						str2voice("准备出货，请稍等");
 						break;
 					// 出货失败，发送的命令格式错误
 					case (byte) 0xff:
@@ -219,9 +230,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		if (mUartNative != null) {
-			mUartNative.NativeThreadStop();
-		}
+		JniThreadStop();
 		if (dialog != null) {
 			dialog.dismiss();
 		}
@@ -233,9 +242,18 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	@Override
 	protected void onPause() {
 		super.onPause();
-		if (mUartNative != null) {
-			mUartNative.NativeThreadStop();
-		}
+		JniThreadStop();
+	}
+
+	private void JniThreadStop() {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (mUartNative != null) {
+					mUartNative.NativeThreadStop();
+				}
+			}
+		});
 	}
 
 	// 发送出货命令
@@ -244,9 +262,21 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 			@Override
 			public void run() {
 				if (goodsPositions.size() > 0) {
+					shipmentCount = 0;
 					for (GoodsPosition goodsPosition : goodsPositions) {
 						cycleCount = 0;
-						while (MachineSateCode != 1) {
+						while (true) {
+							if (MachineSateCode == 1) {
+								break;
+							}
+							if (MachineSateCode == 2) {
+								break;
+							}
+							if(MachineSateCode == 11) {
+								str2voice("机器维护，请稍后再来");
+								startActivity(new Intent(quhuoActitvty.this, SplashActivity.class));
+								return;
+							}
 							// 判断机器此时的状态
 							mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd,
 									ConstantCmd.getMachineStateCmd.length);
@@ -255,8 +285,8 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-							if (cycleCount++ > 60) {
-								str2voice("机器正忙，付款失败，请您稍后再试");
+							if (cycleCount++ > 120) {
+								str2voice("出货失败，请联系客服处理");
 								break;
 							}
 						}
@@ -275,6 +305,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 						mUartNative.UartWriteCmd(command, command.length);
 						// 判断机器此时的状态
 						cycleCount = 0;
+						shipmentCount++;
 						MachineSateCode = 0;
 						// 延时100毫秒
 						try {
@@ -282,8 +313,8 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
+						Log.e("出货", "*********************************出货***********************************");
 					}
-					minusInventory();
 					cycleCount = 0;
 					while (MachineSateCode != 1) {
 						// 判断机器此时的状态
@@ -293,10 +324,14 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						if (cycleCount++ > 60) {
+						if (shipmentCount == goodsPositions.size() && MachineSateCode == 0x01) {
+							break;
+						}
+						if (cycleCount++ > 120) {
 							break;
 						}
 					}
+					minusInventory();
 					runOnUiThread(new Runnable() {
 
 						@Override
@@ -323,19 +358,42 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 					Log.e("url", url);
 					HttpUtils httpUtils = new HttpUtils();
 					try {
-						httpUtils.sendSync(HttpMethod.GET, url);
-					} catch (HttpException e) {
-						e.printStackTrace();
+						httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
+
+							@Override
+							public void onFailure(HttpException arg0, String arg1) {
+								Log.e("onFailure", "onFailure");
+							}
+
+							@Override
+							public void onSuccess(ResponseInfo<String> arg0) {
+								Log.e("success", "success");
+							}
+						});
+					} catch (Exception e) {
+						try {
+							httpUtils.sendSync(HttpMethod.GET, url);
+						} catch (HttpException e1) {
+							e1.printStackTrace();
+						}
 					}
 				}
 			}
 		});
 	}
 
-	protected void str2voice(String string) {
-		VoiceUtils.getInstance().initmTts(string);
+	protected void str2voice(final String string) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				if (!TextUtils.isEmpty(string)) {
+					VoiceUtils.getInstance().initmTts(string);
+				}
+			}
+		});
 	}
 
+	@SuppressLint("NewApi")
 	private void showProgressDialog() {
 		dialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
 		dialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
@@ -361,7 +419,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 		// 正在开门
 		case 0x04:
 			if (MachineSateCode != 4) {
-				str2voice("正在开门，请注意安全");
+				str2voice("正在开门，请注意取货");
 			}
 			MachineSateCode = 4;
 			break;
@@ -409,6 +467,10 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 		// 还篮子状态
 		case 0x10:
 			MachineSateCode = 10;
+			break;
+		// 还篮子状态
+		case 0x11:
+			MachineSateCode = 11;
 			break;
 		default:
 			break;
@@ -527,7 +589,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 				showProgressDialog();
 				sendTakeGoodCode(roomInput);
 			} else {
-				VoiceUtils.getInstance().initmTts("请输入您的取货码");
+				str2voice("请输入您的取货码");
 				utils.Util.DisplayToast(mContext, "请输入您的取货码", R.drawable.warning);
 			}
 			break;
@@ -540,8 +602,9 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 	}
 
 	private void sendTakeGoodCode(String roomInput) {
-		final String url = "http://linliny.com/dingyifeng_web/checkFCode.json?carryFruitcode=" + roomInput + "&mid="
+		final String url = "http://linliny.com/checkFCode.json?carryFruitcode=" + roomInput + "&mid="
 				+ utils.Util.getMid();
+		Log.e("url", url);
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 			@Override
@@ -552,18 +615,28 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 			@Override
 			public void onSuccess(ResponseInfo<String> arg0) {
 				if (!TextUtils.isEmpty(arg0.result)) {
+					Log.e("TAKE_GOODS_CODE", arg0.result);
 					utils.Util.sendMessage(handler, TAKE_GOODS_CODE, arg0.result);
 				}
 			}
 		});
 	}
 
+	@SuppressLint("NewApi")
 	private void showLoadingDialog() {
-		loadingDialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
-		loadingDialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
-		loadingDialog.setCanceledOnTouchOutside(true);
-		loadingDialog.show();
-		loadingDialog.getWindow().setContentView(R.layout.loading_dialog);
+		if (mContext != null) {
+			loadingDialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
+			loadingDialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
+			loadingDialog.setCanceledOnTouchOutside(true);
+			loadingDialog.show();
+			loadingDialog.getWindow().setContentView(R.layout.loading_dialog);
+		}
+	}
+
+	@Override
+	public void onActivityDectory() {
+		quhuoActitvty.this.finish();
+		startActivity(new Intent(quhuoActitvty.this, SplashActivity.class));
 	}
 
 }

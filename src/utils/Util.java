@@ -13,10 +13,13 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import activity.BasketMainActitvty;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Paint;
 import android.os.Handler;
 import android.os.Message;
@@ -64,9 +67,7 @@ public class Util {
 		boolean result = false;
 		Process process = null;
 		OutputStream out = null;
-		Log.e(TAG, "file.getPath()：" + file.getPath());
 		if (file.exists()) {
-			System.out.println(file.getPath() + "==");
 			try {
 				process = Runtime.getRuntime().exec("su");
 				out = process.getOutputStream();
@@ -80,7 +81,6 @@ public class Util {
 				dataOutputStream.close();
 				out.close();
 				int value = process.waitFor();
-
 				// 代表成功
 				if (value == 0) {
 					Log.e(TAG, "安装成功！");
@@ -100,7 +100,6 @@ public class Util {
 				e.printStackTrace();
 			}
 			if (!result) {
-				Log.e(TAG, "root权限获取失败，将进行普通安装");
 				result = true;
 			}
 		}
@@ -147,8 +146,8 @@ public class Util {
 	public static String parseBasketCode(byte[] cmd) {
 		/**
 		 * 20 00 00 08 04 00 00 00 F0 6D A1 7E B1 03；每个字节的含义如下： 20：起始符 00：包头
-		 * 00：状态位—表示数据正常 08：表示后面8个字节为有效数据位 04 00：表示卡片属性为S50卡 00 00：此2个字节无意义 F0 6D A1 7E
-		 * B1：表示卡片序列号 B1：校验和 03：帧结束符
+		 * 00：状态位—表示数据正常 08：表示后面8个字节为有效数据位 04 00：表示卡片属性为S50卡 00 00：此2个字节无意义 F0
+		 * 6D A1 7E B1：表示卡片序列号 B1：校验和 03：帧结束符
 		 */
 		// 数据长度
 		// int dataLength = cmd[3];
@@ -230,6 +229,7 @@ public class Util {
 	 * @param resID
 	 *            要显示的提示图片 暂时屏蔽掉这个显示自定义Toast的方法，目前这个自定义toast的显示不是很稳定
 	 */
+	@SuppressLint("NewApi")
 	public static void DisplayToast(Context context, String str, int resID) {
 		Activity activity = (Activity) context;
 		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
@@ -296,6 +296,37 @@ public class Util {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@SuppressLint("NewApi")
+	public static void disMissDialog(Dialog dialog, Activity activity) {
+		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
+			return;
+		}
+		if (dialog != null && !activity.isDestroyed()) {
+			dialog.dismiss();
+		}
+	}
+	
+	@SuppressLint("NewApi")
+	public static void showCustomDialog(Dialog dialog , Activity activity){
+		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
+			return;
+		}
+		if(!activity.isDestroyed() && dialog != null) {
+			dialog.show();
+		}
+	}
+	
+	public static int getAppVersionCode() {
+		if(mContext != null) {
+			try {
+				return mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionCode;
+			} catch (NameNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return -1;
 	}
 
 }

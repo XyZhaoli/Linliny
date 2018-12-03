@@ -33,21 +33,43 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/clock"
         android:layout_marginLeft="80dp"
-        android:textColor="#000000"
+        android:textColor="#000"
         android:textSize="36sp" />
 
-    <TextView
-        android:id="@+id/tv_countdown_time_main_activity"
+    <view.LEDView
+        android:id="@+id/tv_teperm"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentRight="true"
         android:layout_below="@+id/devices_num"
-        android:layout_marginRight="30dp"
+        android:textColor="#000"
+        android:textSize="24sp" />
+
+    <view.LEDView
+        android:id="@+id/tv_hum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/tv_teperm"
         android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:drawableLeft="@drawable/time"
-        android:textColor="#000000"
-        android:textSize="36sp" />
+        android:textColor="#000"
+        android:textSize="24sp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_teperm"
+        android:layout_alignLeft="@+id/devices_num"
+        android:text="当前温度:"
+        android:textColor="#000" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tv_hum"
+        android:layout_alignLeft="@+id/devices_num"
+        android:text="当前湿度:"
+        android:textColor="#000" />
 
     <View
         android:id="@+id/view"

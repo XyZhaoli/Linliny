@@ -26,6 +26,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android_serialport_api.sample.R;
+import domain.ConstantCmd;
 import utils.ActivityManager;
 import utils.VoiceUtils;
 
@@ -201,8 +202,7 @@ public class shebeihaoActitvty extends Activity implements OnClickListener {
 	}
 
 	private void checkMidNum(String midStr) {
-		String url = "http://linliny.com/dingyifeng_web/ByMidQueryMachine1.json?Mid=" + midStr;
-		Log.e("url", url);
+		String url = ConstantCmd.BASE_URLS + "ByMidQueryMachine1.json?Mid=" + midStr;
 		Mid = midStr;
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {

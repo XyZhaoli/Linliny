@@ -45,21 +45,12 @@
 
     <application
         android:name="application.MyApplication"
+        android:hardwareAccelerated="false"
         android:icon="@drawable/icon"
         android:label="@string/app_name"
         android:largeHeap="true"
         android:theme="@android:style/Theme.NoTitleBar" > <!-- 去除头部标题 -->
-        <!-- 串口页面 -->
-        <activity android:name="MainMenu" >
-        </activity>
-        <activity android:name="SerialPortPreferences" >
-        </activity>
-        <activity android:name="ConsoleActivity" >
-        </activity>
-        <activity android:name="LoopbackActivity" >
-        </activity>
-        <activity android:name="Sending01010101Activity" >
-        </activity>
+
 
         <!-- 主页页面滚动页面 -->
         <activity android:name="activity.IuMainActivity" >
@@ -77,33 +68,7 @@
         <activity android:name="activity.GoodsDetailsActivity" >
         </activity>
         <activity
-            android:name="activity.DialogActivity"
-            android:hardwareAccelerated="false"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
-            android:name="activity.IuPayActivity"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
-            android:name="activity.IuPayListActivity"
-            android:launchMode="singleTop"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
             android:name="activity.ShoppingCarActivity"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
-            android:name="activity.BaskethuiyuankaActitvty"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
-            android:name="activity.BaskethuiyuanActitvty"
-            android:theme="@style/MyDialogStyle" >
-        </activity>
-        <activity
-            android:name="activity.BasketShoujiActitvty"
             android:theme="@style/MyDialogStyle" >
         </activity>
         <activity android:name="activity.BasketMainActitvty" >
@@ -131,6 +96,16 @@
         <receiver android:name="broadcastReceive.Bootreceiver" >
             <intent-filter android:priority="1000" >
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+        
+        <receiver android:name="broadcastReceive.ReIntallReceiver" >
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+
+                <data android:scheme="package" />
             </intent-filter>
         </receiver>
     </application>

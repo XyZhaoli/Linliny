@@ -48,7 +48,7 @@ public class MyAdapter extends BaseAdapter {
 			convertView.setBackgroundColor(Color.parseColor("#36b010"));
 			tv.setTextColor(Color.parseColor("#000000"));
 		} else {
-			convertView.setBackgroundColor(Color.parseColor("#60FFFFFF"));
+			convertView.setBackgroundColor(Color.parseColor("#ffffff"));
 			tv.setTextColor(Color.parseColor("#A1A1A1"));
 		}
 		return convertView;

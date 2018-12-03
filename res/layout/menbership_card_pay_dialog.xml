@@ -2,8 +2,8 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="800dp"
     android:layout_height="wrap_content"
+    android:background="#fff"
     android:gravity="center_vertical"
-    android:background="#000"
     android:orientation="vertical" >
 
     <TextView
@@ -12,6 +12,7 @@
         android:gravity="center"
         android:padding="15dp"
         android:text="会员卡支付"
+        android:textColor="#000"
         android:textSize="32sp" />
 
     <View

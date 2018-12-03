@@ -41,6 +41,7 @@ public class ExitActivity extends Activity {
 		btnCancel.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
+				ExitActivity.this.finish();
 				startActivity(new Intent(ExitActivity.this, IuMainActivity.class));
 			}
 		});

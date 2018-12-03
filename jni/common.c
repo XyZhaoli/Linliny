@@ -256,7 +256,7 @@ int UartWorkCard(int fd, unsigned char* buf)
 	if(retval > 0) {
 		bzero(tmp_buf, 1024);
 		if((ret = read(fd, tmp_buf, 1024)) < 0) {
-			LOGE("读取数据出错");
+			LOGE("读取数据出错 %d", ret);
 			return -1;
 		} else if(ret > 0){
 			memcpy(buf, tmp_buf, ret);

@@ -6,6 +6,7 @@ import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -21,18 +22,19 @@ import android.widget.Toast;
 import android_serialport_api.MyAdapterCart;
 import android_serialport_api.aa;
 import android_serialport_api.sample.R;
+import dialog.CheckOutDialog;
 import domain.AlreadyToBuyGoods;
+import domain.PayforResponse;
 import utils.ActivityManager;
 import utils.ShoppingCarManager;
 import utils.ThreadManager;
+import utils.Util;
 import utils.VoiceUtils;
 
 public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.OnItemClickListener {
 	public static final String BUY_GOODS_DATA = "shoppingCart";
 	private static final int WECHAT_FLAG = 1;
-	// 取消按钮
 	private Button cancel;
-	// 购买按钮
 	private Button btnPayfor;
 	private MyHandler handler = new MyHandler();
 	private ShoppingCarManager shoppingCarManager;
@@ -42,6 +44,9 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 	// 阿里的支付信息
 	private StringBuffer alipayArgu;
 	private Context mContext = ShoppingCarActivity.this;
+	private StringBuilder ccard;
+	private List<AlreadyToBuyGoods> shoppingCarGoods;
+	private CheckOutDialog checkOutDialog;
 
 	class MyHandler extends Handler {
 		@Override
@@ -55,26 +60,15 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 		super.onCreate(savedInstanceState);
 		setFinishOnTouchOutside(true);// 点外面，弹窗消失
 		setContentView(R.layout.ui_shoppingcart);
-		initView();
 		initData();
+		initView();
 	}
 
 	public void parseResponse(Object obj) {
-		payUrls urls = (payUrls) obj;
-		// 解析json，获取微信支付的路径
-		String WXurl = aa.weixinStr(urls.getWechatUrls());
-		String ZFurl = aa.AlipayStr(urls.getAlipayUrls());
-		String outTradeNo = aa.AlipayOrder(urls.getAlipayUrls());
-		String Ono = aa.AlipayWXOrder(urls.getWechatUrls());
-
-		Intent intent = new Intent(ShoppingCarActivity.this, IuPayListActivity.class);
-		intent.putExtra("rs", WXurl);
-		intent.putExtra("ZFurl", ZFurl);
-		intent.putExtra("outTradeNo", outTradeNo);
-		intent.putExtra("Ono", Ono);
-		intent.putExtra("totalPrice", goodsTotalPrice.toString());
-		intent.putExtra("goodsInfo", wechatArgu.toString());
-		startActivity(intent);
+		PayforResponse response = (PayforResponse) obj;
+		checkOutDialog = new CheckOutDialog(mContext, R.style.MyDialogStyle, response,
+				ccard.toString(), String.valueOf(goodsTotalPrice.toString()), wechatArgu.toString());
+		Util.showCustomDialog(checkOutDialog, (Activity) mContext);
 	}
 
 	// 订单信息表
@@ -87,15 +81,14 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 			}
 		});
 		btnPayfor = (Button) findViewById(R.id.btn_pay_for);
-		MyAdapterCart adapter = new MyAdapterCart();
-		listView1.setAdapter(adapter);
+		listView1.setAdapter(new MyAdapterCart(shoppingCarManager.getInstence().getShoppingCarGoods()));
 
 		btnPayfor.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (shoppingCarManager.getShoppingCarGoods().size() == 0) {
 					Toast.makeText(ShoppingCarActivity.this, "购物车空空如也，快去添加商品到购物车里卖来吧！", Toast.LENGTH_LONG).show();
 				} else {
-					final payUrls urls = getPackageUrls();
+					final PayforResponse urls = getPackageUrls();
 					ThreadManager.getThreadPool().execute(new Runnable() {
 						@Override
 						public void run() {
@@ -103,10 +96,10 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 								HttpUtils httpUtils = new HttpUtils();
 								httpUtils.configCurrentHttpCacheExpiry(1000);
 								String wechatResponse;
-								wechatResponse = httpUtils.sendSync(HttpMethod.GET, urls.wechatUrls).readString();
-								String alipayReponse = httpUtils.sendSync(HttpMethod.GET, urls.alipayUrls).readString();
+								wechatResponse = httpUtils.sendSync(HttpMethod.GET, urls.getWechatRes()).readString();
+								String alipayReponse = httpUtils.sendSync(HttpMethod.GET, urls.getAliPayRes()).readString();
 								if (!TextUtils.isEmpty(wechatResponse) && !TextUtils.isEmpty(alipayReponse)) {
-									payUrls urls = new payUrls(wechatResponse, alipayReponse);
+									PayforResponse urls = new PayforResponse(wechatResponse, alipayReponse);
 									utils.Util.sendMessage(handler, WECHAT_FLAG, urls);
 								} else {
 									httpGetFail();
@@ -127,19 +120,18 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 
 	}
 
-	private payUrls getPackageUrls() {
+	private PayforResponse getPackageUrls() {
 		// 购买商品的总价
 		double totalPrices = 0;
 		// 购买商品的总数
 		int totalCount = 0;
 		int flag = 0;
+		ccard = new StringBuilder();
 		wechatArgu = new StringBuffer();
 		alipayArgu = new StringBuffer();
 		goodsTotalPrice = new StringBuffer();
-		SharedPreferences preferences = getSharedPreferences("userInfo", MODE_PRIVATE);
-		String Mid = preferences.getString("Mid", "");
-
-		List<AlreadyToBuyGoods> shoppingCarGoods = shoppingCarManager.getShoppingCarGoods();
+		String Mid = Util.getMid();
+		
 		for (AlreadyToBuyGoods alreadyToBuyGoods : shoppingCarGoods) {
 			flag++;
 			int num = alreadyToBuyGoods.getAlreadyToBuyGoodsnum();
@@ -165,39 +157,14 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 				+ "&Goods=" + wechatArgu;
 		String alipayUrls = "http://linliny.com/dingyifeng_web/AddOrdALiPay.json?Mid=" + Mid + "&Total=" + totalPrices
 				+ "&Num=" + totalCount + "&Goods=" + alipayArgu;
-		return new payUrls(wechatUrls, alipayUrls);
+		
+		ccard.append("Mid=").append(Mid).append("&Total=").append(totalPrices).append("&Goods=").append(wechatArgu);
+		return new PayforResponse(wechatUrls, alipayUrls);
 	}
 
 	private void initData() {
 		shoppingCarManager = ShoppingCarManager.getInstence();
-		ActivityManager.getInstance().addActivity(ShoppingCarActivity.this);
-	}
-
-	class payUrls {
-		String wechatUrls;
-		String alipayUrls;
-
-		public payUrls(String wechatUrls, String alipayUrls) {
-			this.wechatUrls = wechatUrls;
-			this.alipayUrls = alipayUrls;
-		}
-
-		public String getWechatUrls() {
-			return wechatUrls;
-		}
-
-		public void setWechatUrls(String wechatUrls) {
-			this.wechatUrls = wechatUrls;
-		}
-
-		public String getAlipayUrls() {
-			return alipayUrls;
-		}
-
-		public void setAlipayUrls(String alipayUrls) {
-			this.alipayUrls = alipayUrls;
-		}
-
+		shoppingCarGoods = shoppingCarManager.getShoppingCarGoods();
 	}
 
 	@Override
@@ -215,6 +182,12 @@ public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.On
 				VoiceUtils.getInstance().initmTts("网络错误，请重试");
 			}
 		});
+	}
+
+	@Override
+	public void onActivityDectory() {
+		Util.disMissDialog(checkOutDialog, ShoppingCarActivity.this);
+		ShoppingCarActivity.this.finish();
 	}
 
 }

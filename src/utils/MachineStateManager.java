@@ -1,15 +1,13 @@
 package utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.iflytek.cloud.thirdparty.v;
 import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.RequestParams;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 import domain.GoodsPosition;
 import domain.MachineState;
@@ -21,6 +19,7 @@ public class MachineStateManager {
 	private static MachineState machineState;
 	private static Uartjni uartjni;
 	private static String mid;
+	private static final byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
 
 	private static void parseMachineState(byte[] obj) {
 		// 防止数组出现越界的异常
@@ -62,11 +61,19 @@ public class MachineStateManager {
 	}
 
 	public void closeSerial() {
-		if(uartjni != null) {
-			uartjni.NativeThreadStop();
+		if (uartjni != null) {
+			ThreadManager.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					Log.e("IuMain", "close uart");
+					uartjni.NativeThreadStop();
+					uartjni = null;
+					stateManager = null;
+				}
+			});
 		}
 	}
-	
+
 	public static MachineStateManager getInstance() {
 		if (stateManager == null) {
 			synchronized (MachineStateManager.class) {
@@ -91,36 +98,38 @@ public class MachineStateManager {
 	}
 
 	public void reportMachineState() {
-		/**
-		 * failureRecord.setFcode(map.get("Fcode").toString()); //故障代码
-		 * failureRecord.setFname(map.get("Fname").toString()); //故障名称
-		 * failureRecord.setFcontent(map.get("Fcontent").toString()); //故障内容
-		 * failureRecord.setFresolve(map.get("Fresolve").toString()); //解决方案
-		 * failureRecord.setFunwound((int)map.get("Funwound")); //是否解除
-		 * failureRecord.setMid((int)map.get("Mid")); //机器id·
-		 */
 		if (getMachineState().getMachineStateCode() == 0x09) {
-			String parseMachineFaultCode = parseMachineFaultCode(machineState.getMachineMalfunctionCode());
+			final String parseMachineFaultCode = parseMachineFaultCode(machineState.getMachineMalfunctionCode());
 			// TODO 此时机器处于故障状态，上报给服务器此时的状态
-//			final Map<String, Object> map = new HashMap<String, Object>();
-//			map.put("Fcode", machineState.getMachineMalfunctionCode() + "");
-//			map.put("Fname", parseMachineFaultCode);
-//			map.put("Fcontent", "参考故障名称");
-//			map.put("Fresolve", "暂无");
-//			map.put("Funwound", "否");
-//			map.put("Mid", utils.Util.getMid());
-//			new Thread() {
-//				public void run() {
-//					bb.doPost("http://linliny.com/dingyifeng_web/AddFailure.json", map);
-//				};
-//			}.start();
+			ThreadManager.getThreadPool().execute(new Runnable() {
+				@Override
+				public void run() {
+					HttpUtils httpUtils = new HttpUtils();
+					StringBuffer url = new StringBuffer("http://linliny.com/dingyifeng_web/AddFailure.json");
+					url.append("?Fcode=").append(machineState.getMachineStateCode()).append("&Fname=")
+							.append(machineState.getMachineMalfunctionCode()).append("&Fcontent=")
+							.append(parseMachineFaultCode).append("&Fresolve=暂无&Funwound=0&Mid=").append(Util.getMid());
+					httpUtils.send(HttpMethod.POST, url.toString(), new RequestCallBack<String>() {
+
+						@Override
+						public void onFailure(HttpException arg0, String arg1) {
+
+						}
+
+						@Override
+						public void onSuccess(ResponseInfo<String> arg0) {
+
+						}
+					});
+				}
+			});
 		}
 	}
 
 	private String parseMachineFaultCode(int machineMalfunctionCode) {
 		/**
-		 * 0X01:定位故障(主电机或位置光电开关故障)； 0X02:开门故障； 0X03:关门故障； 0X04:防夹传感器故障； 0X05:制冷故障；
-		 * 0X06:加湿故障（缺水或长期湿度达不到设定值）； 0X07:其他故障； 0X08:主电机故障。
+		 * 0X01:定位故障(主电机或位置光电开关故障)； 0X02:开门故障； 0X03:关门故障； 0X04:防夹传感器故障；
+		 * 0X05:制冷故障； 0X06:加湿故障（缺水或长期湿度达不到设定值）； 0X07:其他故障； 0X08:主电机故障。
 		 */
 		String faultCodeStr = "";
 		switch (machineMalfunctionCode) {
@@ -155,8 +164,9 @@ public class MachineStateManager {
 	}
 
 	private static void sendCmd() {
-		byte[] cmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
-		uartjni.UartWriteCmd(cmd, 4);
+		if (uartjni != null) {
+			uartjni.UartWriteCmd(cmd, 4);
+		}
 	}
 
 	/**

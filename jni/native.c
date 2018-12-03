@@ -107,7 +107,6 @@ JNIEXPORT jint JNICALL Java_uartJni_Uartjni_BoardThreadStart(JNIEnv *env, jobjec
 		LOGE("Create master thread fail!");
 		return -1;
 	}
-
 	return 0;
 }
 
@@ -118,7 +117,6 @@ JNIEXPORT void JNICALL Java_uartJni_Uartjni_NativeThreadStop(JNIEnv *env, jobjec
 
 	is_thread_running = 0;
 	kill_rc = pthread_join(thread_id, NULL);
-	D("#Thread end=%d", kill_rc);
 	LOGD("uart_thread_stop success");
 	close(fd);
 }
