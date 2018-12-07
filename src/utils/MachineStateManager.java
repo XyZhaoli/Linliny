@@ -9,6 +9,7 @@ import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 
 import android.annotation.SuppressLint;
 import android.util.Log;
+import domain.ConstantCmd;
 import domain.GoodsPosition;
 import domain.MachineState;
 import uartJni.Uartjni;
@@ -65,7 +66,6 @@ public class MachineStateManager {
 			ThreadManager.getThreadPool().execute(new Runnable() {
 				@Override
 				public void run() {
-					Log.e("IuMain", "close uart");
 					uartjni.NativeThreadStop();
 					uartjni = null;
 					stateManager = null;
@@ -86,6 +86,12 @@ public class MachineStateManager {
 		return stateManager;
 	}
 
+	public static void sendCmd() {
+		if(uartjni != null) {
+			uartjni.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
+		}
+	}
+
 	public MachineState getMachineState() {
 		if (machineState == null) {
 			try {
@@ -93,6 +99,7 @@ public class MachineStateManager {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
+			sendCmd();
 		}
 		return machineState;
 	}
@@ -113,12 +120,12 @@ public class MachineStateManager {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
-
+							
 						}
 
 						@Override
 						public void onSuccess(ResponseInfo<String> arg0) {
-
+							
 						}
 					});
 				}
@@ -158,15 +165,10 @@ public class MachineStateManager {
 			faultCodeStr = "主电机故障";
 			break;
 		default:
+			faultCodeStr = "未知故障";
 			break;
 		}
 		return faultCodeStr;
-	}
-
-	private static void sendCmd() {
-		if (uartjni != null) {
-			uartjni.UartWriteCmd(cmd, 4);
-		}
 	}
 
 	/**

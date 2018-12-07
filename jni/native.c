@@ -48,7 +48,6 @@ static void *thread_uart(void* arg) {
 		return 0;
 	}
 
-	LOGI("UART thread start.....");
 	while (is_thread_running) {
 		if ((len = UartWork(fd, tmp_buf)) > 0) {
 			//(*env)->CallVoidMethod(env, gJavaObj, javaCallback, tmp_buf);
@@ -58,7 +57,6 @@ static void *thread_uart(void* arg) {
 	}
 
 	(*gJavaVM)->DetachCurrentThread(gJavaVM);
-	LOGI("thread end....");
 	pthread_exit(0);
 }
 
@@ -95,7 +93,7 @@ JNIEXPORT jint JNICALL Java_uartJni_Uartjni_BoardThreadStart(JNIEnv *env, jobjec
 			return -1;
 		}
 	}
-	LOGE("open uart success");
+	LOGE("open ----机器---- success");
 	uartSetSpeed(fd, 9600);
 	if (!setUartConfig(fd, 8, 1, 'N')) {
 		LOGE("master uart config error 1 !");
@@ -117,7 +115,7 @@ JNIEXPORT void JNICALL Java_uartJni_Uartjni_NativeThreadStop(JNIEnv *env, jobjec
 
 	is_thread_running = 0;
 	kill_rc = pthread_join(thread_id, NULL);
-	LOGD("uart_thread_stop success");
+	LOGE("机器串口关闭");
 	close(fd);
 }
 

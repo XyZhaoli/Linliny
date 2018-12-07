@@ -7,13 +7,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
+import com.orhanobut.logger.Logger;
 
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.TextView;
@@ -22,13 +22,12 @@ import domain.ConstantCmd;
 import domain.Goods;
 import domain.GoodsPosition;
 import uartJni.Uartjni;
-import utils.ActivityManager;
 import utils.CommandPackage;
 import utils.ShoppingCarManager;
 import utils.ThreadManager;
 import utils.VoiceUtils;
 
-public class LoaddingActivity extends BaseAcitivity {
+public class LoaddingActivity extends BaseActivity {
 
 	private TextView tvInfo;
 	private Uartjni mUartNative;
@@ -62,32 +61,27 @@ public class LoaddingActivity extends BaseAcitivity {
 			@Override
 			public void onNativeCallback(final byte[] arg1) {
 				setTime(240);
-				handler.post(new Runnable() {
-					@Override
-					public void run() {
-						if (arg1.length >= 4) {
-							switch (arg1[2]) {
-							// 成功
-							case 0:
-								break;
-							// 出货失败，发送的命令格式错误
-							case (byte) 0xff:
-								break;
-							// 出货失败机器正忙
-							case (byte) 0xFE:
-								break;
-							// execute_error
-							case (byte) 0xFD:
-								break;
-							case 0x10:
-								parseMachineStateCode(arg1[3], arg1[4]);
-								break;
-							default:
-								break;
-							}
-						}
+				if (arg1.length >= 4) {
+					switch (arg1[2]) {
+					// 成功
+					case 0:
+						break;
+					// 出货失败，发送的命令格式错误
+					case (byte) 0xff:
+						break;
+					// 出货失败机器正忙
+					case (byte) 0xFE:
+						break;
+					// execute_error
+					case (byte) 0xFD:
+						break;
+					case 0x10:
+						parseMachineStateCode(arg1[3], arg1[4]);
+						break;
+					default:
+						break;
 					}
-				});
+				}
 			}
 		};
 		mUartNative.nativeInitilize();
@@ -95,12 +89,7 @@ public class LoaddingActivity extends BaseAcitivity {
 	}
 
 	protected void parseMachineFault(byte b) {
-		runOnUiThread(new Runnable() {
-			@Override
-			public void run() {
-				str2Voice("机器正忙，出货失败，请您稍后再试");
-			}
-		});
+		str2Voice("机器正忙，出货失败，请您稍后再试");
 		switch (b) {
 		// 定位故障(主电机或位置光电开关故障）
 		case 0x01:
@@ -215,6 +204,9 @@ public class LoaddingActivity extends BaseAcitivity {
 			public void run() {
 				// 减库存,测试时关闭减库存
 				String url = null;
+				if(TextUtils.isEmpty(payfor)) {
+					return;
+				}
 				if (payfor.equals("wechat")) {
 					url = "http://linliny.com/dingyifeng_web/shanchukuncuntion.json?model=&request=&MiD=" + mid
 							+ "&Ono=" + Ono;
@@ -270,10 +262,15 @@ public class LoaddingActivity extends BaseAcitivity {
 		shoppingCarManager = ShoppingCarManager.getInstence();
 		MachineSateCode.set(-1);
 		final String goodsInfo = getIntent().getStringExtra("goodsInfo");
+		Logger.e(goodsInfo);
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
+					if(mUartNative == null) {
+						str2Voice("机器出错，请联系客服处理");
+						return;
+					}
 					shipmentCount = 0;
 					parseGoodsInfo(goodsInfo);
 					for (GoodsPosition goodsPosition : goodsPositions) {
@@ -313,7 +310,6 @@ public class LoaddingActivity extends BaseAcitivity {
 						utils.Util.delay(200);
 					}
 					cycleCount = 0;
-					// TODO
 					while (true) {
 						utils.Util.delay(1000);
 						if (cycleCount++ > 120) {
@@ -326,8 +322,6 @@ public class LoaddingActivity extends BaseAcitivity {
 					}
 					str2Voice("机器出货完成, 感谢您的本次购物");
 					removeInventory();
-					ActivityManager.getInstance().addActivity(LoaddingActivity.this);
-					ActivityManager.getInstance().finshAllActivity();
 					startActivity(new Intent(LoaddingActivity.this, SplashActivity.class));
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -337,7 +331,7 @@ public class LoaddingActivity extends BaseAcitivity {
 	}
 
 	private void parseGoodsInfo(String goodsInfo) {
-		Log.e("goodsInfo", goodsInfo);
+		Logger.e(goodsInfo);
 		if (!TextUtils.isEmpty(goodsInfo)) {
 			try {
 				String[] goodsListSArr = goodsInfo.split("\\*");
@@ -355,7 +349,7 @@ public class LoaddingActivity extends BaseAcitivity {
 						String[] rowAndColumnStr = split[i].split("-");
 						GoodsPosition goodsPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
 								Integer.parseInt(rowAndColumnStr[1]), Yid, goodsName);
-						Log.e("rowAndColumnStr", goodsPosition.getColumnNum() + ":" + goodsPosition.getRowNum());
+						Logger.e(goodsPosition.getColumnNum() + ":" + goodsPosition.getRowNum());
 						goodsPositions.add(goodsPosition);
 					}
 				}
@@ -369,7 +363,6 @@ public class LoaddingActivity extends BaseAcitivity {
 		tvInfo = (TextView) findViewById(R.id.tv_loadding_title);
 		tvInfo.setText("付款成功！正在出货，请稍等");
 		tvInfo.setOnLongClickListener(new OnLongClickListener() {
-
 			@Override
 			public boolean onLongClick(View v) {
 				Intent home = new Intent(Intent.ACTION_MAIN);

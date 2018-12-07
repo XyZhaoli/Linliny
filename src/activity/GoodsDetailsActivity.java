@@ -74,6 +74,8 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	private MyHandler handler = new MyHandler(mContext);
 	private ImageView ivShoppingCar;
 	private boolean isPause;
+	
+	
 	@Override
 	public void onWindowFocusChanged(boolean hasFocus) {
 		super.onWindowFocusChanged(hasFocus);
@@ -102,7 +104,9 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 
 	// 开启倒计时
 	private void initCountDown() {
-		countDownTimer.schedule(countDownTask, 1000, 1000);
+		if(countDownTimer != null && countDownTimer != null) {
+			countDownTimer.schedule(countDownTask, 1000, 1000);
+		}
 	}
 
 	@Override
@@ -357,7 +361,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	}
 
 	public void setGoodsNum(int num) {
-		if (badgeView != null) {
+		if (badgeView != null && num >= 0) {
 			badgeView.setText(String.valueOf(num));
 		}
 	}

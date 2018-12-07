@@ -31,7 +31,7 @@ import utils.ThreadManager;
 import utils.Util;
 import utils.VoiceUtils;
 
-public class ShoppingCarActivity extends BaseAcitivity implements AdapterView.OnItemClickListener {
+public class ShoppingCarActivity extends BaseActivity implements AdapterView.OnItemClickListener {
 	public static final String BUY_GOODS_DATA = "shoppingCart";
 	private static final int WECHAT_FLAG = 1;
 	private Button cancel;

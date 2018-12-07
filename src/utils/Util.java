@@ -329,4 +329,15 @@ public class Util {
 		return -1;
 	}
 
+	public static String getVersionName(){
+		if(mContext != null) {
+			try {
+				return mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName;
+			} catch (NameNotFoundException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
+	
 }

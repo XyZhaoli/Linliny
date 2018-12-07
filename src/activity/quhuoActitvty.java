@@ -39,7 +39,7 @@ import utils.ThreadManager;
 import utils.Util;
 import utils.VoiceUtils;
 
-public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
+public class quhuoActitvty extends BaseActivity implements OnClickListener {
 	EditText myCourse_roomId_input;
 	TextView number_1;
 	TextView number_2;
@@ -627,7 +627,7 @@ public class quhuoActitvty extends BaseAcitivity implements OnClickListener {
 		if (mContext != null) {
 			loadingDialog = new AlertDialog.Builder(mContext, R.style.MyDialogStyle).create();
 			loadingDialog.getWindow().setDimAmount(0.3f);// 设置昏暗度为0
-			loadingDialog.setCanceledOnTouchOutside(true);
+			loadingDialog.setCanceledOnTouchOutside(false);
 			loadingDialog.show();
 			loadingDialog.getWindow().setContentView(R.layout.loading_dialog);
 		}

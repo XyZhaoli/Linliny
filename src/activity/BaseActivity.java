@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
 
-public abstract class BaseAcitivity extends Activity {
+public abstract class BaseActivity extends Activity {
 
 	protected int COUNT_DOWN_TIME = 240;
 	private Timer countDownTimer;

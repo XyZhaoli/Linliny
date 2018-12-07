@@ -14,6 +14,7 @@ import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
+import com.orhanobut.logger.Logger;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -24,7 +25,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.ImageView;
@@ -42,7 +42,7 @@ import view.BannerLayout;
 import view.LEDView;
 
 @SuppressLint("HandlerLeak")
-public class IuMainActivity extends BaseAcitivity implements View.OnClickListener {
+public class IuMainActivity extends BaseActivity implements View.OnClickListener {
 
 	private SoftwareInfo versionInfo;
 	private LEDView tv_teperm;
@@ -71,7 +71,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		initViews();
 		initData();
 		getMachineState();
-		//checkSoftVersion();
+		checkSoftVersion();
 	}
 
 	private void checkSoftVersion() {
@@ -88,6 +88,9 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 				Gson gson = new Gson();
 				versionInfo = gson.fromJson(arg0.result, SoftwareInfo.class);
 				int appVersionCode = Util.getAppVersionCode();
+				if(versionInfo == null) {
+					return;
+				}
 				if (Integer.parseInt(versionInfo.getVersionCode()) > appVersionCode) {
 					downloadApk(versionInfo.getUrl());
 					runOnUiThread(new Runnable() {
@@ -109,7 +112,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		shebei = (TextView) findViewById(R.id.devices_num);
 		tv_teperm = (LEDView) findViewById(R.id.tv_teperm);
 		tv_hum = (LEDView) findViewById(R.id.tv_hum);
-		shebei.setText("设备号:" + utils.Util.getMid());
+		shebei.setText("设备号:" + Util.getMid());
 
 		findViewById(R.id.iv_goodsdetils_shopping).setOnClickListener(this);
 		findViewById(R.id.iv_goodsdetils_take_goods).setOnClickListener(this);
@@ -132,6 +135,8 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 		if (!utils.NetworkUtils.isNetworkAvailable(IuMainActivity.this)) {
 			Toast.makeText(IuMainActivity.this, "网络错误", Toast.LENGTH_SHORT).show();
 		}
+		tv_sofeware_version.setText("软件版本:" + Util.getVersionName());
+		Logger.e(Util.getVersionName());
 		handler = new Handler();
 		if (bannerLayout != null) {
 			handler.post(new Runnable() {
@@ -153,15 +158,18 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 
 	private void getMachineState() {
 		machineState = MachineStateManager.getInstance().getMachineState();
-		parseMachineState(machineState);
-	}
-
-	private void parseMachineState(final MachineState machineState) {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				if (machineState == null) {
 					// 如果为空说明机器没有反应，直接报故障就好
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							showRemindDialog(true);
+						}
+					});
+					MachineStateManager.getInstance().closeSerial();
 					return;
 				}
 				if (machineState.getMachineStateCode() == 0x09) {
@@ -178,7 +186,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 					public void run() {
 						// TODO
 						tv_teperm.setText(machineState.getTemper() + "℃   ");
-						tv_hum.setText(machineState.getHumidity() + "%Rh ");
+						tv_hum.setText(machineState.getHumidity() + "%Rh  ");
 					}
 				});
 				MachineStateManager.getInstance().closeSerial();
@@ -228,7 +236,7 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 				@Override
 				public void onFailure(HttpException arg0, String arg1) {
 					// 下载失败
-					Log.e("onFailure", "onFailure");
+					Logger.e("onFailure");
 				}
 
 				@Override
@@ -238,8 +246,6 @@ public class IuMainActivity extends BaseAcitivity implements View.OnClickListene
 
 				@Override
 				public void onLoading(long total, long current, boolean isUploading) {
-					Log.e("total", "" + total);
-					Log.e("current", "" + current);
 					super.onLoading(total, current, isUploading);
 				}
 			});

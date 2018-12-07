@@ -378,9 +378,13 @@ public class BannerLayout extends RelativeLayout {
 		});
 		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
 		if (defaultImage != 0) {
-			Glide.with(getContext()).load(url).placeholder(defaultImage).centerCrop().into(imageView);
+			if (getContext() != null) {
+				Glide.with(getContext()).load(url).placeholder(defaultImage).centerCrop().into(imageView);
+			}
 		} else {
-			Glide.with(getContext()).load(url).centerCrop().into(imageView);
+			if (getContext() != null) {
+				Glide.with(getContext()).load(url).centerCrop().into(imageView);
+			}
 		}
 		if (!TextUtils.isEmpty(title)) {
 			TextView textView = new TextView(getContext());
@@ -411,7 +415,9 @@ public class BannerLayout extends RelativeLayout {
 			}
 		});
 		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-		Glide.with(getContext()).load(res).centerCrop().into(imageView);
+		if (getContext() != null) {
+			Glide.with(getContext()).load(res).centerCrop().into(imageView);
+		}
 		if (!TextUtils.isEmpty(title)) {
 			TextView textView = new TextView(getContext());
 			textView.setText(title);

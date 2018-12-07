@@ -167,13 +167,15 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 
 					@Override
 					public void onFailure(HttpException arg0, String arg1) {
-						getActivity().runOnUiThread(new Runnable() {
-							@Override
-							public void run() {
-								utils.Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
-								str2Voice("网络错误，请重试");
-							}
-						});
+						if(getActivity() != null) {
+							getActivity().runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									utils.Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
+									str2Voice("网络错误，请重试");
+								}
+							});
+						}
 					}
 
 					@Override

@@ -166,6 +166,7 @@ public class MyAdapterCart extends BaseAdapter implements View.OnClickListener {
 				if (!refreshPriceAndCount(getViewHolder(position))) {
 					Toast.makeText(context, "数据刷新出错", Toast.LENGTH_SHORT).show();
 				}
+				sendBrodcast();
 				removeViewHolder(position);
 			}
 		});

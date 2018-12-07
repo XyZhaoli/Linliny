@@ -25,9 +25,10 @@
         android:textColor="#000"
         android:background="@drawable/plus_minus_shape"
         android:ems="10"
+        android:password="true"
         android:textSize="16sp"
         android:hint="请输入会员卡支付密码"
-        android:inputType="textPassword" >
+        android:inputType="number" >
         <requestFocus />
     </EditText>
 

@@ -17,7 +17,7 @@ import dialog.LinliUrlQrDialog;
 import utils.Util;
 import view.BannerLayout;
 
-public class BasketMainActitvty extends BaseAcitivity implements OnClickListener {
+public class BasketMainActitvty extends BaseActivity implements OnClickListener {
 
 	private LinliUrlQrDialog linliUrlQrDialog;
 	private ByPhoneNumReturnBasketDialog phoneNumReturnBasketDialog;
