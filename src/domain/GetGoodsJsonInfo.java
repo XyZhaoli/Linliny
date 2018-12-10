@@ -2,8 +2,6 @@ package domain;
 
 import java.util.List;
 
-import android.R.string;
-
 public class GetGoodsJsonInfo {
 
 	private List<Goods> pro;

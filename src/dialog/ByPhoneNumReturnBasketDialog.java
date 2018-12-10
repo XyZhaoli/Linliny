@@ -75,8 +75,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	private byte[] tempCardCmd = new byte[64];
 	private int sum = 0;
 	private boolean isSuccess = false;
-	private String BasketCode = "";
-	private String SerialCode = "";
+	private StringBuffer BasketCode;
+	private StringBuffer SerialCode;
 
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
@@ -103,6 +103,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	private void initData() {
 		mid = utils.Util.getMid();
+		BasketCode = new StringBuffer();
+		SerialCode = new StringBuffer();
 	}
 
 	private void initView() {
@@ -188,7 +190,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					BasketCode = SerialCode;
+					BasketCode = BasketCode.append(SerialCode);
 					sendReturnBasketCmd();
 				} else {
 					BasketCode = null;
@@ -228,6 +230,9 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			public void run() {
 				if (mUartNative == null) {
 					str2Voice("机器维护，请稍后再试");
+					if (mContext != null) {
+						mContext.startActivity(new Intent(mContext, SplashActivity.class));
+					}
 				}
 				int cycleCount = 0;
 				// 查询机器状态
@@ -283,7 +288,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				if (!TextUtils.isEmpty(BasketCode)) {
+				if (!TextUtils.isEmpty(BasketCode.toString())) {
 					StringBuilder url = new StringBuilder(ConstantCmd.BASE_URLS).append("returnBasket.json?gid=").append(gid)
 							.append("&phone=").append(phoneNum).append("&Frid=").append(BasketCode).append("&mid=").append(mid)
 							.append("&cardSerial=");
@@ -316,6 +321,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						httpGetFail();
 					}
 				} else {
+					str2Voice("还篮子失败,请联系客服处理");
+					if (mContext != null) {
+						mContext.startActivity(new Intent(mContext, SplashActivity.class));
+					}
 					Logger.e("BasketCode值为空");
 				}
 			}
@@ -335,7 +344,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String basketCodeStr) {
-		SerialCode = basketCodeStr;
+		SerialCode = SerialCode.append(basketCodeStr);
 		String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
@@ -571,9 +580,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	protected void onStop() {
 		super.onStop();
 		JniThreadStop();
-		if (alertDialog != null) {
-			alertDialog.dismiss();
-		}
+		Util.disMissDialog(alertDialog, (Activity) mContext);
 		mContext = null;
 	}
 
@@ -729,7 +736,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			@Override
 			public void onSuccess(ResponseInfo<String> arg0) {
 				if (!TextUtils.isEmpty(arg0.result)) {
-					utils.Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, arg0.result);
+					Util.sendMessage(handler, CHECK_PHONE_IS_MEMBERSHIP, arg0.result);
 				} else {
 					httpGetFail();
 				}

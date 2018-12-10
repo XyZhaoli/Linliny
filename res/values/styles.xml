@@ -3,7 +3,7 @@
 
     <!-- 自定义弹窗 -->
     <!-- AndroidManifest文件里 android:name="DialogActivity" android:theme="@style/MyDialogStyle" -->
-    <style name="MyDialogStyle">
+    <style name="MyCustomDialogStyle">
         <item name="android:windowFrame">@null</item>
  <!-- 边框 -->
         <item name="android:windowNoTitle">true</item>

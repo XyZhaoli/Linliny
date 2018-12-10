@@ -16,4 +16,18 @@ public class ConstantCmd {
 	public static final String BASE_URLS = "http://linliny.com/dingyifeng_web/";
 	
 	public static final String GET_APP_VERSION = "http://linliny.com/linlinyapp/linlinyapp.json";
+	
+	//APP 目前的模式  0表示机器当前的状态是正常的
+	public static int currentStatus = 0;
+
+	
+	public static final int MACHINE_NORMAL = 0;
+	
+	//服务器进入升级模式
+	public static final int MACHINE_UPDATE = 1;
+	
+	//机器进入维护模式
+	public static final int MACHINE_MAINTENANCE = 2;
+	
+	
 }

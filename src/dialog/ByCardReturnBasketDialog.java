@@ -49,15 +49,15 @@ public class ByCardReturnBasketDialog extends Dialog {
 	public int gid;
 	protected Dialog alertDialog;
 	private String mid;
-	protected static final String TAG = "会员卡";
 	private byte[] tempCardCmd = new byte[64];
 	private static int sum = 0;
 	private Context mContext;
 	private boolean isHaveCardCode = false;
 	private static int MachineSateCode = 0;
-	private String cardCode = "";
-	private String serialCode = "";
-	protected String BasketCode;
+	
+	private StringBuffer cardCode;
+	private StringBuffer serialCode;
+	private StringBuffer basketCode;
 
 	public ByCardReturnBasketDialog(Context context) {
 		super(context);
@@ -107,7 +107,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 					str2Voice("感应成功，请等候开门");
 					sendReturnBasketCmd();
 					isHaveCardCode = false;
-					BasketCode = serialCode;
+					basketCode = basketCode.append(serialCode);
 				} else {
 					str2Voice("篮子编码有误");
 				}
@@ -135,9 +135,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				if (!TextUtils.isEmpty(BasketCode)) {
+				if (!TextUtils.isEmpty(basketCode.toString())) {
 					StringBuilder url = new StringBuilder("http://linliny.com/returnBasket.json?gid=").append(gid)
-							.append("&phone=&Frid=").append(BasketCode).append("&mid=").append(mid)
+							.append("&phone=&Frid=").append(basketCode).append("&mid=").append(mid)
 							.append("&cardSerial=").append(cardCode);
 					HttpUtils httpUtils = new HttpUtils();
 					httpUtils.configRequestRetryCount(20);
@@ -167,6 +167,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 						e.printStackTrace();
 					}
 				} else {
+					str2Voice("还篮子失败");
 					Logger.e("退款的时候BasketCode为空");
 				}
 			}
@@ -191,7 +192,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				utils.Util.DisplayToast(mContext, "请您前往商城注册会员", R.drawable.smile);
 				break;
 			default:
-				cardCode = serialCode;
+				cardCode = cardCode.append(serialCode);
 				showAlertDialog(mContext, "提示");
 				str2Voice("请您将篮子放置在感应区");
 				isHaveCardCode = true;
@@ -253,6 +254,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 	private void initData() {
 		str2Voice("请将会员卡放置在感应区");
 		mid = Util.getMid();
+		cardCode = new StringBuffer();
+		serialCode = new StringBuffer();
+		basketCode = new StringBuffer();
 	}
 
 	private void initSerialJni() {
@@ -355,7 +359,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				serialCode = uartCode;
+				serialCode = serialCode.append(uartCode);
 				if (!isHaveCardCode) {
 					// 刚开始我们不确定这个编码是不是会员卡的编码，默认将此编码认为是会员卡编码
 					StringBuffer url = new StringBuffer("http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=")
@@ -499,11 +503,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 			sendGetMachineBasketCodeCmd();
 		} else if ((cmd[3] & 0xff) == 0xFF) {
 			// 此时机器未检测到篮子的编码，也就是说机器中没有篮子
-			utils.Util.sendMessage(handler, RETURN_BASKET_FAIL);
+			Util.sendMessage(handler, RETURN_BASKET_FAIL);
 			// TODO 后续还需要做的工作 如果篮子已经放进去了 但是有检测到编码，这个时候需要开门，用户将篮子取走
 			// TODO 2018/11/22由于底层的代码修改，换篮子失败，自动将篮子退回，上层已经不需要做这一步了；
 		} else if (cmd[1] == 0x0E) {
-			utils.Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
+			Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
 		}
 	}
 
@@ -585,6 +589,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 			public void run() {
 				if (mUartNative == null) {
 					str2Voice("还篮子失败，请联系客服处理");
+					mContext.startActivity(new Intent(mContext, SplashActivity.class));
 					return;
 				}
 				int cycleCount = 0;

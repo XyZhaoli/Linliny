@@ -123,7 +123,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 						// 如果这个图片的URL包含+-+，那么就说明这个商品的图像有多个图片
 						String string;
 						try {
-							string = utils.Util.parseImageUrl(data.toString())[0];
+							string = Util.parseImageUrl(data.toString())[0];
 						} catch (Exception e) {
 							string = data.toString();
 						}
@@ -159,19 +159,18 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 
 	private void initData() {
 		shoppingCarManager = ShoppingCarManager.getInstence();
-		mid = utils.Util.getMid();
+		mid = Util.getMid();
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.configCurrentHttpCacheExpiry(0);
 		httpUtils.send(HttpMethod.GET, ConstantCmd.BASE_URLS + "getshangpingchaxun1.json?Mid=" + mid,
 				new RequestCallBack<String>() {
-
 					@Override
 					public void onFailure(HttpException arg0, String arg1) {
 						if(getActivity() != null) {
 							getActivity().runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
-									utils.Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
+									Util.DisplayToast(getActivity(), "网络超时，请重试", R.drawable.warning);
 									str2Voice("网络错误，请重试");
 								}
 							});
@@ -181,7 +180,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 					@Override
 					public void onSuccess(ResponseInfo<String> arg0) {
 						if (!TextUtils.isEmpty(arg0.result)) {
-							utils.Util.sendMessage(handler, 0, arg0.result);
+							Util.sendMessage(handler, 0, arg0.result);
 						}
 					}
 				});
@@ -192,7 +191,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	 */
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-		if (utils.Util.isFastClick()) {
+		if (Util.isFastClick()) {
 			goodsDetailDialog = new GoodsDetailDialog(getActivity(), R.style.MyDialogStyle,
 					data_list.get(position).get("Yid").toString());
 			if (!getActivity().isDestroyed()) {
@@ -236,11 +235,11 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 								} catch (Exception e) {
 									e.printStackTrace();
 									// 如果说我们第二次点击这个图标的话，就会报异常；
-									utils.Util.DisplayToast(getActivity(), "购物车中已放入该商品", R.drawable.warning);
+									Util.DisplayToast(getActivity(), "购物车中已放入该商品", R.drawable.warning);
 								}
 							} else {
 								// 库存数量为零
-								utils.Util.DisplayToast(getActivity(), "亲，该商品不能购买更多哦!", R.drawable.warning);
+								Util.DisplayToast(getActivity(), "亲，该商品不能购买更多哦!", R.drawable.warning);
 							}
 						}
 					}
@@ -253,7 +252,7 @@ public class MyFragment extends Fragment implements OnItemClickListener {
 	protected void addGoods2CartAnim(ImageView goodsImageView) {
 		final ImageView goods = new ImageView(getActivity());
 		goods.setImageResource(R.drawable.card_little);
-		int size = utils.Util.dp2px(getActivity(), 59);
+		int size = Util.dp2px(getActivity(), 59);
 		ViewGroup.LayoutParams lp = new ViewGroup.LayoutParams(size, size);
 		goods.setLayoutParams(lp);
 		layout.addView(goods);

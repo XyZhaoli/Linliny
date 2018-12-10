@@ -386,8 +386,7 @@ public class GoodsDetailsActivity extends FragmentActivity implements OnItemClic
 	 */
 	protected void hideBottomUIMenu() {
 		// 隐藏虚拟按键，并且全屏
-		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) { // lower
-																		// api
+		if (Build.VERSION.SDK_INT > 11 && Build.VERSION.SDK_INT < 19) {
 			View v = this.getWindow().getDecorView();
 			v.setSystemUiVisibility(View.GONE);
 		} else if (Build.VERSION.SDK_INT >= 19) {
