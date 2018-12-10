@@ -6,15 +6,11 @@ public class SerialManager {
 
 	private Uartjni mUartjni;
 	private static SerialManager mSerialManager;
-	
-	
-	
+
 	private SerialManager() {
 		mUartjni = new Uartjni() {
 			@Override
 			public void onNativeCallback(byte[] arg1) {
-				
-				
 				
 			}
 		};

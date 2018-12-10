@@ -95,7 +95,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case CHECK_CARD_IS_MEMBERSHIP:
-				checkCardIsMembership(msg.obj.toString());
+				if(!isHaveCardCode) {
+					checkCardIsMembership(msg.obj.toString());
+				}
 				break;
 			case CHECK_BASKET_RFID_CODE:
 				// 4.根据返回的验证篮子的信息，成功就发送开门信息，失败则弹窗提示
@@ -105,9 +107,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 				if (response == 1) {
 					// 是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					sendReturnBasketCmd();
+					if(TextUtils.isEmpty(basketCode.toString())) {
+						sendReturnBasketCmd();
+						basketCode = basketCode.append(serialCode);
+					}
 					isHaveCardCode = false;
-					basketCode = basketCode.append(serialCode);
 				} else {
 					str2Voice("篮子编码有误");
 				}
@@ -181,18 +185,20 @@ public class ByCardReturnBasketDialog extends Dialog {
 			switch (gid) {
 			case 0:
 				str2Voice("机器格子不足，请您稍后再来");
-				utils.Util.DisplayToast(mContext, "机器格子不足");
+				Util.DisplayToast(mContext, "机器格子不足");
 				break;
 			case -1:
 				str2Voice("会员卡不存在");
-				utils.Util.DisplayToast(mContext, "会员卡不存在");
+				Util.DisplayToast(mContext, "会员卡不存在");
 				break;
 			case -2:
 				str2Voice("您还不是我们的会员，请您前往商城注册会员");
-				utils.Util.DisplayToast(mContext, "请您前往商城注册会员");
+				Util.DisplayToast(mContext, "请您前往商城注册会员");
 				break;
 			default:
-				cardCode = cardCode.append(serialCode);
+				if(!TextUtils.isEmpty(cardCode.toString())) {
+					cardCode = cardCode.append(serialCode);
+				}
 				showAlertDialog(mContext, "提示");
 				str2Voice("请您将篮子放置在感应区");
 				isHaveCardCode = true;
@@ -208,6 +214,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 			public void run() {
 				if (mUartNative == null) {
 					str2Voice("机器维护，请稍后再试");
+					return;
 				}
 				int cycleCount = 0;
 				// 查询机器状态
@@ -221,6 +228,13 @@ public class ByCardReturnBasketDialog extends Dialog {
 						return;
 					}
 					// 判断机器此时的状态
+					if (mUartNative == null) {
+						str2Voice("机器维护，请联系客服处理退款");
+						if (mContext != null) {
+							mContext.startActivity(new Intent(mContext, SplashActivity.class));
+						}
+						return;
+					}
 					mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 					try {
 						Thread.sleep(1000);
@@ -359,6 +373,10 @@ public class ByCardReturnBasketDialog extends Dialog {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
+				if(!TextUtils.isEmpty(serialCode.toString())) {
+					int length = serialCode.length();
+					serialCode.delete(0, length);
+				}
 				serialCode = serialCode.append(uartCode);
 				if (!isHaveCardCode) {
 					// 刚开始我们不确定这个编码是不是会员卡的编码，默认将此编码认为是会员卡编码
@@ -447,13 +465,14 @@ public class ByCardReturnBasketDialog extends Dialog {
 	}
 
 	public void showAlertDialog(final Context context, String titleName) {
-		if (context != null && titleName != null) {
+		if (context != null && titleName != null && alertDialog == null) {
 			View view = View.inflate(context, R.layout.dialog, null);
 			TextView tv_title = (TextView) view.findViewById(R.id.tv_title1);
 			view.findViewById(R.id.iv_cancel).setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					Util.disMissDialog(alertDialog, (Activity) mContext);
+					alertDialog = null;
 				}
 			});
 			tv_title.setText(titleName);

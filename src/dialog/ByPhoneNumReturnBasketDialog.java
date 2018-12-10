@@ -26,6 +26,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -185,15 +186,20 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				// 4.根据返回的验证篮子的信息，成功就发送开门信息，失败则弹窗提示
 				// 发送还篮子指令
 				// 成功获取到篮子的位置以后，我们给串口发送信息，开始还篮子
-				Logger.e(msg.obj.toString());
 				int response = parseJson(msg.obj.toString(), "check");
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					BasketCode = BasketCode.append(SerialCode);
-					sendReturnBasketCmd();
+					if(TextUtils.isEmpty(BasketCode.toString())) {
+						BasketCode = BasketCode.append(SerialCode);
+						sendReturnBasketCmd();
+						Log.e("------------", BasketCode.toString());
+					}
 				} else {
-					BasketCode = null;
+					if(!TextUtils.isEmpty(BasketCode.toString())) {
+						int length = BasketCode.length();
+						BasketCode.delete(0, length);
+					}
 					str2Voice("篮子编码有误,请重试");
 				}
 				break;
@@ -246,6 +252,13 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						return;
 					}
 					// 判断机器此时的状态
+					if (mUartNative == null) {
+						str2Voice("机器维护，请联系客服处理退款");
+						if (mContext != null) {
+							mContext.startActivity(new Intent(mContext, SplashActivity.class));
+						}
+						return;
+					}
 					mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 					try {
 						Thread.sleep(1000);
@@ -344,6 +357,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String basketCodeStr) {
+		if(!TextUtils.isEmpty(SerialCode.toString())) {
+			int length = SerialCode.length();
+			SerialCode.delete(0, length);
+		}
 		SerialCode = SerialCode.append(basketCodeStr);
 		String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
 		HttpUtils httpUtils = new HttpUtils();
@@ -370,13 +387,14 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	 * @param message栏中所要显示的内容
 	 */
 	public void showAlertDialog(Context context, String titleName) {
-		if (context != null) {
+		if (context != null && mContext != null && alertDialog == null) {
 			View view = View.inflate(context, R.layout.dialog, null);
 			TextView tv_title = (TextView) view.findViewById(R.id.tv_title1);
 			view.findViewById(R.id.iv_cancel).setOnClickListener(new View.OnClickListener() {
 				@Override
 				public void onClick(View v) {
 					Util.disMissDialog(alertDialog, (Activity) mContext);
+					alertDialog = null;
 				}
 			});
 			tv_title.setText(titleName);
