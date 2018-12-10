@@ -205,7 +205,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 			case RETURN_BASKET_FAIL:
 				// 这个时候还篮子失败，通知服务器
-				utils.Util.DisplayToast(mContext, "还篮子失败", R.drawable.fail);
+				utils.Util.DisplayToast(mContext, "还篮子失败");
 				str2Voice("还篮子失败，请将篮子取出，关门后再试");
 				if (mContext != null) {
 					((Activity) mContext).startActivity(new Intent(mContext, SplashActivity.class));
@@ -277,10 +277,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			str2Voice("请您将篮子放置在感应区");
 		} else if (gid == 0) {
 			str2Voice("机器格子不足，请您稍后再来");
-			utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
+			utils.Util.DisplayToast(mContext, "机器格子不足");
 		} else if (gid == -1) {
 			str2Voice("您还不是我们的会员，请您前往商城注册会员");
-			utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员", R.drawable.smile);
+			utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员");
 		}
 	}
 

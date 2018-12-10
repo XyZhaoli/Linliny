@@ -157,10 +157,10 @@ public class IuMainActivity extends BaseActivity implements View.OnClickListener
 	}
 
 	private void getMachineState() {
-		machineState = MachineStateManager.getInstance().getMachineState();
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
+				machineState = MachineStateManager.getInstance().getMachineState();
 				if (machineState == null) {
 					// 如果为空说明机器没有反应，直接报故障就好
 					runOnUiThread(new Runnable() {

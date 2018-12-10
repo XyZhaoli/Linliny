@@ -240,6 +240,24 @@ public class Util {
 		// .setGravity(Gravity.CENTER_VERTICAL, 0, 500).show();
 		Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
 	}
+	
+	
+	/**
+	 * 函数说明：自定义的Toast显示
+	 * 
+	 * @param str
+	 *            所要显示的字符串
+	 * @param resID
+	 *            要显示的提示图片 暂时屏蔽掉这个显示自定义Toast的方法，目前这个自定义toast的显示不是很稳定
+	 */
+	@SuppressLint("NewApi")
+	public static void DisplayToast(Context context, String str) {
+		Activity activity = (Activity) context;
+		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
+			return;
+		}
+		Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
+	}
 
 	/**
 	 * 解析json的返回值

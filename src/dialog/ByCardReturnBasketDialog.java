@@ -114,7 +114,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				break;
 			case RETURN_BASKET_FAIL:
 				// 这个时候还篮子失败，通知服务器
-				utils.Util.DisplayToast(mContext, "还篮子失败", R.drawable.fail);
+				Util.DisplayToast(mContext, "还篮子失败");
 				str2Voice("还篮子失败，请将篮子取出，关门后再试");
 				((Activity) mContext).startActivity(new Intent(((Activity) mContext), SplashActivity.class));
 				((Activity) mContext).finish();
@@ -181,15 +181,15 @@ public class ByCardReturnBasketDialog extends Dialog {
 			switch (gid) {
 			case 0:
 				str2Voice("机器格子不足，请您稍后再来");
-				utils.Util.DisplayToast(mContext, "机器格子不足", R.drawable.smile);
+				utils.Util.DisplayToast(mContext, "机器格子不足");
 				break;
 			case -1:
 				str2Voice("会员卡不存在");
-				utils.Util.DisplayToast(mContext, "会员卡不存在", R.drawable.smile);
+				utils.Util.DisplayToast(mContext, "会员卡不存在");
 				break;
 			case -2:
 				str2Voice("您还不是我们的会员，请您前往商城注册会员");
-				utils.Util.DisplayToast(mContext, "请您前往商城注册会员", R.drawable.smile);
+				utils.Util.DisplayToast(mContext, "请您前往商城注册会员");
 				break;
 			default:
 				cardCode = cardCode.append(serialCode);

@@ -82,7 +82,6 @@ public class MachineStateManager {
 				}
 			}
 		}
-		sendCmd();
 		return stateManager;
 	}
 
@@ -93,12 +92,9 @@ public class MachineStateManager {
 	}
 
 	public MachineState getMachineState() {
+		sendCmd();
+		Util.delay(100);
 		if (machineState == null) {
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 			sendCmd();
 		}
 		return machineState;

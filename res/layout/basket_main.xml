@@ -14,7 +14,6 @@
         android:layout_height="600dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        app:defaultImage="@drawable/get_goods"
         app:indicatorMargin="10dp"
         app:indicatorShape="oval"
         app:indicatorSpace="10dp"
@@ -32,7 +31,7 @@
         android:layout_width="match_parent"
         android:layout_height="77dp"
         android:layout_below="@+id/banner_in_getgoods"
-        android:background="@color/green" />
+        android:background="#649BFF" />
 
     <ImageView
         android:id="@+id/back"
@@ -57,50 +56,33 @@
         android:layout_marginTop="50dp"
         android:orientation="horizontal" >
 
-        <TextView
+        <ImageView
             android:id="@+id/phone_log_in"
             android:layout_width="0dp"
             android:layout_height="350dp"
-            android:layout_margin="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_weight="1"
-            android:background="#FFFF00"
             android:clickable="true"
-            android:drawableTop="@drawable/phone"
-            android:gravity="center"
-            android:paddingTop="50dp"
-            android:text="手机号登陆"
-            android:textColor="#000"
-            android:textSize="36sp" />
+            android:src="@drawable/phone_return_basket"/>
 
-        <TextView
+        <ImageView
             android:id="@+id/vip_log_in"
             android:layout_width="0dp"
             android:layout_height="350dp"
-            android:layout_margin="10dp"
             android:layout_weight="1"
-            android:background="#87CEEB"
             android:clickable="true"
-            android:drawableTop="@drawable/vip"
-            android:gravity="center"
-            android:paddingTop="50dp"
-            android:text="会员号登陆"
-            android:textColor="#000"
-            android:textSize="36sp" />
+            android:src="@drawable/card_return_basket" />
 
-        <TextView
+        <ImageView
             android:id="@+id/register"
             android:layout_width="0dp"
             android:layout_height="350dp"
-            android:layout_margin="10dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
             android:layout_weight="1"
-            android:background="#FAEBD7"
             android:clickable="true"
-            android:drawableTop="@drawable/register"
-            android:gravity="center"
-            android:paddingTop="50dp"
-            android:text="注册会员"
-            android:textColor="#000"
-            android:textSize="36sp" />
+            android:src="@drawable/register_vip" />
     </LinearLayout>
 
     <TextView

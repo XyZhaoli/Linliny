@@ -6,13 +6,16 @@ public class SerialManager {
 
 	private Uartjni mUartjni;
 	private static SerialManager mSerialManager;
-	private onCallback callback;
-
+	
+	
+	
 	private SerialManager() {
 		mUartjni = new Uartjni() {
 			@Override
 			public void onNativeCallback(byte[] arg1) {
-				callback.onResponse(arg1);
+				
+				
+				
 			}
 		};
 	}
@@ -37,20 +40,18 @@ public class SerialManager {
 
 	public void writeCmd(byte[] cmd, int len) {
 		synchronized (SerialManager.class) {
-			mUartjni.UartWriteCmd(cmd, len);
+			if(len > 0 && cmd.length > 0) {
+				mUartjni.UartWriteCmd(cmd, len);
+			}
 		}
 	}
 
-	public void setOnCallback(onCallback callback) {
-		this.callback = callback;
-	}
-
-	public interface onCallback {
-		public void onResponse(byte[] response);
-	}
-
 	public void closeSerial() {
-		mUartjni.NativeThreadStop();
+		synchronized (SerialManager.class) {
+			if(mUartjni != null) {
+				mUartjni.NativeThreadStop();
+			}
+		}
 	}
 
 }

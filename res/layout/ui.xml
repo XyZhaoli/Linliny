@@ -12,7 +12,6 @@
         android:layout_width="match_parent"
         android:layout_height="600dp"
         android:layout_centerHorizontal="true"
-        app:defaultImage="@drawable/get_goods"
         app:indicatorMargin="10dp"
         app:indicatorShape="oval"
         app:indicatorSpace="10dp"

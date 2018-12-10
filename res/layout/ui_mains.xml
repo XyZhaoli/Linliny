@@ -10,7 +10,6 @@
         android:id="@+id/banner1"
         android:layout_width="match_parent"
         android:layout_height="600dp"
-        app:defaultImage="@drawable/get_goods"
         app:indicatorMargin="10dp"
         app:indicatorShape="oval"
         app:indicatorSpace="10dp"
@@ -32,28 +31,28 @@
         android:gravity="center"
         android:orientation="horizontal" >
 
-        <include
-            android:id="@+id/layout_shopping"
+        <ImageView
+            android:id="@+id/iv_goodsdetils_shopping"
             android:layout_width="0dp"
             android:layout_height="500dp"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            layout="@layout/goods_detils_shopping" />
+            android:src="@drawable/buy_goods_home" />
 
-        <include
-            android:id="@+id/layout_take_goods"
+        <ImageView
+            android:id="@+id/iv_goodsdetils_take_goods"
             android:layout_width="0dp"
             android:layout_height="500dp"
             android:layout_weight="1"
-            layout="@layout/goods_detils_take_goods" />
+            android:src="@drawable/take_goods_home" />
 
-        <include
-            android:id="@+id/layout_return"
+        <ImageView
+            android:id="@+id/iv_goodsdetils_return"
             android:layout_width="0dp"
             android:layout_height="500dp"
             android:layout_margin="10dp"
             android:layout_weight="1"
-            layout="@layout/goods_detils_return" />
+            android:src="@drawable/return_basket_home" />
     </LinearLayout>
 
     <TextView
