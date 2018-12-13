@@ -221,7 +221,7 @@ public class CheckOutDialog extends Dialog implements View.OnClickListener {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
-							Log.e("onFailure", "onFailure" + arg1);
+							Logger.e(arg1);
 						}
 
 						@Override
@@ -229,7 +229,6 @@ public class CheckOutDialog extends Dialog implements View.OnClickListener {
 							if (arg0.result.equals("5")) {
 								payforSuccess(arg0.result);
 							}
-							Log.e("onSuccess", "onSuccess" + arg0.result);
 						}
 					});
 					Util.delay(1000);
@@ -423,9 +422,12 @@ public class CheckOutDialog extends Dialog implements View.OnClickListener {
 									timerText.setText(count + "s");
 								}
 							});
+							if(count == 30) {
+								str2Voice("您好，请您尽快付款");
+							}
 						}
 						isRunning = false;
-						utils.Util.delay(5000);
+						Util.delay(5000);
 						Util.disMissDialog(CheckOutDialog.this, (Activity) mContext);
 					} catch (Exception e) {
 						e.printStackTrace();

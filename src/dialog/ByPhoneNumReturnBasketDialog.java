@@ -28,7 +28,6 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -37,7 +36,6 @@ import domain.ConstantCmd;
 import domain.GoodsPosition;
 import uartJni.UartJniCard;
 import uartJni.Uartjni;
-import utils.ActivityManager;
 import utils.CommandPackage;
 import utils.ThreadManager;
 import utils.Util;
@@ -76,8 +74,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	private byte[] tempCardCmd = new byte[64];
 	private int sum = 0;
 	private boolean isSuccess = false;
-	private StringBuffer BasketCode;
-	private StringBuffer SerialCode;
+	private StringBuffer basketCode;
+	private StringBuffer serialCode;
 
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
@@ -104,8 +102,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	private void initData() {
 		mid = utils.Util.getMid();
-		BasketCode = new StringBuffer();
-		SerialCode = new StringBuffer();
+		basketCode = new StringBuffer();
+		serialCode = new StringBuffer();
 	}
 
 	private void initView() {
@@ -190,15 +188,15 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					if(TextUtils.isEmpty(BasketCode.toString())) {
-						BasketCode = BasketCode.append(SerialCode);
+					if(TextUtils.isEmpty(basketCode.toString())) {
+						basketCode = basketCode.append(serialCode);
 						sendReturnBasketCmd();
-						Log.e("------------", BasketCode.toString());
+						Log.e("------------", basketCode.toString());
 					}
 				} else {
-					if(!TextUtils.isEmpty(BasketCode.toString())) {
-						int length = BasketCode.length();
-						BasketCode.delete(0, length);
+					if(!TextUtils.isEmpty(basketCode.toString())) {
+						int length = basketCode.length();
+						basketCode.delete(0, length);
 					}
 					str2Voice("篮子编码有误,请重试");
 				}
@@ -285,15 +283,16 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	public void checkResonse(String string) {
 		gid = parseJson(string, "gid");
+		Logger.e(string);
 		if (gid >= 1 && gid <= 16) {
 			showAlertDialog(mContext, "提示");
 			str2Voice("请您将篮子放置在感应区");
 		} else if (gid == 0) {
 			str2Voice("机器格子不足，请您稍后再来");
-			utils.Util.DisplayToast(mContext, "机器格子不足");
+			Util.DisplayToast(mContext, "机器格子不足");
 		} else if (gid == -1) {
 			str2Voice("您还不是我们的会员，请您前往商城注册会员");
-			utils.Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员");
+			Util.DisplayToast(mContext, "您还不是我们的会员，请您前往商城注册会员");
 		}
 	}
 
@@ -301,9 +300,9 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				if (!TextUtils.isEmpty(BasketCode.toString())) {
+				if (!TextUtils.isEmpty(basketCode.toString())) {
 					StringBuilder url = new StringBuilder(ConstantCmd.BASE_URLS).append("returnBasket.json?gid=").append(gid)
-							.append("&phone=").append(phoneNum).append("&Frid=").append(BasketCode).append("&mid=").append(mid)
+							.append("&phone=").append(phoneNum).append("&Frid=").append(basketCode).append("&mid=").append(mid)
 							.append("&cardSerial=");
 					HttpUtils httpUtils = new HttpUtils();
 					httpUtils.configRequestRetryCount(20);
@@ -357,11 +356,11 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String basketCodeStr) {
-		if(!TextUtils.isEmpty(SerialCode.toString())) {
-			int length = SerialCode.length();
-			SerialCode.delete(0, length);
+		if(!TextUtils.isEmpty(serialCode.toString())) {
+			int length = serialCode.length();
+			serialCode.delete(0, length);
 		}
-		SerialCode = SerialCode.append(basketCodeStr);
+		serialCode = serialCode.append(basketCodeStr);
 		String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
 		HttpUtils httpUtils = new HttpUtils();
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {

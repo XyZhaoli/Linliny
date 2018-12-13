@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
@@ -109,8 +108,10 @@ public class ByCardReturnBasketDialog extends Dialog {
 					str2Voice("感应成功，请等候开门");
 					if(TextUtils.isEmpty(basketCode.toString())) {
 						sendReturnBasketCmd();
-						basketCode = basketCode.append(serialCode);
+						int length = basketCode.length();
+						basketCode.delete(0, length);
 					}
+					basketCode = basketCode.append(serialCode);
 					isHaveCardCode = false;
 				} else {
 					str2Voice("篮子编码有误");
@@ -181,6 +182,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 	public void checkCardIsMembership(String string) {
 		// 2.收到如果确认有此会员，弹窗提示请将篮子放置在感应区,然后我们的editText会获取到篮子的编码，然后得到篮子的编码
 		gid = parseJson(string, "gid");
+		Logger.e(string);
 		if (gid != -250) {
 			switch (gid) {
 			case 0:
@@ -197,8 +199,10 @@ public class ByCardReturnBasketDialog extends Dialog {
 				break;
 			default:
 				if(!TextUtils.isEmpty(cardCode.toString())) {
-					cardCode = cardCode.append(serialCode);
+					int length = cardCode.length();
+					cardCode.delete(0, length);
 				}
+				cardCode = cardCode.append(serialCode);
 				showAlertDialog(mContext, "提示");
 				str2Voice("请您将篮子放置在感应区");
 				isHaveCardCode = true;

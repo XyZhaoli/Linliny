@@ -239,18 +239,13 @@ public class quhuoActitvty extends BaseActivity implements OnClickListener {
 		}
 	}
 
-	@Override
-	protected void onPause() {
-		super.onPause();
-		JniThreadStop();
-	}
-
 	private void JniThreadStop() {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				if (mUartNative != null) {
 					mUartNative.NativeThreadStop();
+					mUartNative = null;
 				}
 			}
 		});

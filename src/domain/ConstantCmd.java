@@ -29,5 +29,4 @@ public class ConstantCmd {
 	//机器进入维护模式
 	public static final int MACHINE_MAINTENANCE = 2;
 	
-	
 }

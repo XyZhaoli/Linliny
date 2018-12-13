@@ -10,13 +10,11 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android_serialport_api.ListDataSave;
 import android_serialport_api.sample.R;
-import domain.ConstantCmd;
 import utils.SharePreferenceUtils;
 
 public class SplashActivity extends Activity {

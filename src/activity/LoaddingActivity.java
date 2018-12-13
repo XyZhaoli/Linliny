@@ -89,7 +89,6 @@ public class LoaddingActivity extends BaseActivity {
 	}
 
 	protected void parseMachineFault(byte b) {
-		str2Voice("机器正忙，出货失败，请您稍后再试");
 		switch (b) {
 		// 定位故障(主电机或位置光电开关故障）
 		case 0x01:
