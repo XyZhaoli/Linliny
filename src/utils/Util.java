@@ -13,6 +13,14 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+import com.lidroid.xutils.HttpUtils;
+import com.lidroid.xutils.exception.HttpException;
+import com.lidroid.xutils.http.ResponseInfo;
+import com.lidroid.xutils.http.callback.RequestCallBack;
+import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
+import com.orhanobut.logger.Logger;
+
 import activity.BasketMainActitvty;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -21,6 +29,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Paint;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.text.TextUtils;
@@ -28,6 +37,8 @@ import android.util.Log;
 import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
+import domain.ConstantCmd;
+import domain.SoftwareInfo;
 
 /**
  * Created by ${GongWenbo} on 2018/5/18 0018.
@@ -46,6 +57,66 @@ public class Util {
 			mid = preferences.getString("Mid", "");
 		}
 		return mid;
+	}
+
+	public static void checkSoftVersion(final boolean isAlone) {
+		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.send(HttpMethod.GET, ConstantCmd.GET_APP_VERSION, new RequestCallBack<String>() {
+			@Override
+			public void onFailure(HttpException arg0, String arg1) {
+
+			}
+
+			@Override
+			public void onSuccess(ResponseInfo<String> arg0) {
+				Gson gson = new Gson();
+				SoftwareInfo versionInfo = gson.fromJson(arg0.result, SoftwareInfo.class);
+				int appVersionCode = Util.getAppVersionCode();
+				if (versionInfo == null) {
+					return;
+				}
+				if (isAlone) {
+					if (Integer.parseInt(versionInfo.getVersionCode()) >= appVersionCode) {
+						downloadApk(versionInfo.getUrl());
+					}
+				} else {
+					if (Integer.parseInt(versionInfo.getVersionCode()) > appVersionCode) {
+						downloadApk(versionInfo.getUrl());
+					}
+				}
+			}
+		});
+	}
+
+	protected static void downloadApk(String url) {
+		if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
+			String path = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator
+					+ "linlinySellApp.apk";
+			HttpUtils httpUtils = new HttpUtils();
+			httpUtils.download(url, path, new RequestCallBack<File>() {
+				@Override
+				public void onSuccess(ResponseInfo<File> responseInfo) {
+					File file = responseInfo.result;
+					installBySlient(getmContext(), file);
+				}
+
+				@Override
+				public void onFailure(HttpException arg0, String arg1) {
+					// 下载失败
+					Logger.e("onFailure");
+				}
+
+				@Override
+				public void onStart() {
+					super.onStart();
+				}
+
+				@Override
+				public void onLoading(long total, long current, boolean isUploading) {
+					super.onLoading(total, current, isUploading);
+				}
+			});
+		}
 	}
 
 	public static Context getmContext() {
@@ -146,8 +217,8 @@ public class Util {
 	public static String parseBasketCode(byte[] cmd) {
 		/**
 		 * 20 00 00 08 04 00 00 00 F0 6D A1 7E B1 03；每个字节的含义如下： 20：起始符 00：包头
-		 * 00：状态位—表示数据正常 08：表示后面8个字节为有效数据位 04 00：表示卡片属性为S50卡 00 00：此2个字节无意义 F0
-		 * 6D A1 7E B1：表示卡片序列号 B1：校验和 03：帧结束符
+		 * 00：状态位—表示数据正常 08：表示后面8个字节为有效数据位 04 00：表示卡片属性为S50卡 00 00：此2个字节无意义 F0 6D A1 7E
+		 * B1：表示卡片序列号 B1：校验和 03：帧结束符
 		 */
 		// 数据长度
 		// int dataLength = cmd[3];
@@ -240,8 +311,7 @@ public class Util {
 		// .setGravity(Gravity.CENTER_VERTICAL, 0, 500).show();
 		Toast.makeText(mContext, str, Toast.LENGTH_SHORT).show();
 	}
-	
-	
+
 	/**
 	 * 函数说明：自定义的Toast显示
 	 * 
@@ -325,19 +395,19 @@ public class Util {
 			dialog.dismiss();
 		}
 	}
-	
+
 	@SuppressLint("NewApi")
-	public static void showCustomDialog(Dialog dialog , Activity activity){
+	public static void showCustomDialog(Dialog dialog, Activity activity) {
 		if (activity == null || activity.isDestroyed() || activity.isFinishing()) {
 			return;
 		}
-		if(!activity.isDestroyed() && dialog != null) {
+		if (!activity.isDestroyed() && dialog != null) {
 			dialog.show();
 		}
 	}
-	
+
 	public static int getAppVersionCode() {
-		if(mContext != null) {
+		if (mContext != null) {
 			try {
 				return mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionCode;
 			} catch (NameNotFoundException e) {
@@ -347,8 +417,8 @@ public class Util {
 		return -1;
 	}
 
-	public static String getVersionName(){
-		if(mContext != null) {
+	public static String getVersionName() {
+		if (mContext != null) {
 			try {
 				return mContext.getPackageManager().getPackageInfo(mContext.getPackageName(), 0).versionName;
 			} catch (NameNotFoundException e) {
@@ -357,5 +427,5 @@ public class Util {
 		}
 		return null;
 	}
-	
+
 }

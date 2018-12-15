@@ -161,7 +161,7 @@ static int parse_cmd(unsigned char* cmd, int len)
 	unsigned short fcc = 0, i = 0;
 
 	if (cmd[0] != 0x02) {
-		LOGE("cmd head[0x%02x] error!", cmd[0]);
+		LOGD("cmd head[0x%02x] error!", cmd[0]);
 		return 0;
 	}
 	
@@ -171,9 +171,9 @@ static int parse_cmd(unsigned char* cmd, int len)
 
 	fcc = sum&0xff;
 
-	LOGE("Data Sum:(0x%04x, 0x%02x, x%02x)", sum, fcc, cmd[len-1]);
+	LOGD("Data Sum:(0x%04x, 0x%02x, x%02x)", sum, fcc, cmd[len-1]);
 	if (fcc != cmd[len-1]) {
-		LOGE(" check sum error:(0x%02x, x%02x)", fcc, cmd[len-1]);
+		LOGD(" check sum error:(0x%02x, x%02x)", fcc, cmd[len-1]);
 		return 0;
 	}
 	
@@ -233,7 +233,6 @@ int UartWork(int fd, unsigned char* buf)
 	}
 	return 0;
 }
-
 
 int UartWorkCard(int fd, unsigned char* buf)
 {

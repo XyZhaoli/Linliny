@@ -1,7 +1,5 @@
 package domain;
 
-import android.R.string;
-
 public class GoodsPosition {
 	// "0B-06" 行号 列号
 	// 商品在货架上的行号
@@ -12,8 +10,17 @@ public class GoodsPosition {
 	String Yid;
 
 	String Yname;
-	
 
+	boolean isRemoveGoods;
+
+	public GoodsPosition(int rowNum, int columnNum, String yid, String yname, boolean isRemoveGoods) {
+		this.rowNum = rowNum;
+		this.columnNum = columnNum;
+		this.Yid = yid;
+		this.Yname = yname;
+		this.isRemoveGoods = isRemoveGoods;
+	}
+	
 	public GoodsPosition(int rowNum, int columnNum, String yid, String yname) {
 		this.rowNum = rowNum;
 		this.columnNum = columnNum;
@@ -21,13 +28,21 @@ public class GoodsPosition {
 		this.Yname = yname;
 	}
 
+	public boolean isRemoveGoods() {
+		return isRemoveGoods;
+	}
+	
+
+	public void setRemoveGoods(boolean isRemoveGoods) {
+		this.isRemoveGoods = isRemoveGoods;
+	}
+
 	public GoodsPosition(int rowNum, int columnNum) {
 		super();
 		this.rowNum = rowNum;
 		this.columnNum = columnNum;
 	}
-	
-	
+
 	public String getYname() {
 		return Yname;
 	}
@@ -35,7 +50,6 @@ public class GoodsPosition {
 	public void setYname(String yname) {
 		Yname = yname;
 	}
-
 
 	public String getYid() {
 		return Yid;

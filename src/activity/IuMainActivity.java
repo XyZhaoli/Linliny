@@ -230,7 +230,7 @@ public class IuMainActivity extends BaseActivity implements View.OnClickListener
 				@Override
 				public void onSuccess(ResponseInfo<File> responseInfo) {
 					File file = responseInfo.result;
-					utils.Util.installBySlient(getApplicationContext(), file);
+					Util.installBySlient(getApplicationContext(), file);
 				}
 
 				@Override

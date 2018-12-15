@@ -1,7 +1,5 @@
 package broadcastReceive;
 
-import com.google.gson.Gson;
-
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,31 +24,35 @@ public class MessageReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		try {
-
 			Bundle bundle = intent.getExtras();
 
 			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
 				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
 				Log.e(TAG, "[MyReceiver] 接收Registration Id : " + regId);
-				// send the Registration Id to your server...
 
 			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
-				Log.e(TAG, "[MyReceiver] 接收到推送下来的自定义消息(内容为): " + bundle.getString(JPushInterface.EXTRA_MESSAGE));
-				//设置进入服务器维护模式
-				if(!TextUtils.isEmpty(bundle.getString(JPushInterface.EXTRA_MESSAGE))) {
-					ServerMessage message = GsonUtils.parseJsonWithGson(bundle.getString(JPushInterface.EXTRA_MESSAGE), ServerMessage.class);
-					if(message.getFlag() == ConstantCmd.MACHINE_UPDATE) {
+				// 设置进入服务器维护模式
+				Log.e(TAG, bundle.getString(JPushInterface.EXTRA_MESSAGE));
+				if (!TextUtils.isEmpty(bundle.getString(JPushInterface.EXTRA_MESSAGE))) {
+					ServerMessage message = GsonUtils.parseJsonWithGson(bundle.getString(JPushInterface.EXTRA_MESSAGE),
+							ServerMessage.class);
+					// 所有机器进行升级
+					if (message.getFlag() == ConstantCmd.MACHINE_UPDATE && message.getMid() == 0) {
 						SharePreferenceUtils.putBoolean(context, "MACHINE_MAINTENANCE", true);
 						ConstantCmd.currentStatus = ConstantCmd.MACHINE_UPDATE;
-					} else if(message.getFlag() == ConstantCmd.MACHINE_NORMAL) {
+					} else if (message.getFlag() == ConstantCmd.MACHINE_NORMAL) {
 						SharePreferenceUtils.putBoolean(context, "MACHINE_MAINTENANCE", false);
 						Intent statusIntent = new Intent();
 						statusIntent.setAction("setMachineStatus");
 						context.sendBroadcast(statusIntent);
 						ConstantCmd.currentStatus = ConstantCmd.MACHINE_NORMAL;
+					} else if (message.getFlag() == ConstantCmd.MAHINE_ALONE_UPDATE
+							&& message.getMid() == Integer.parseInt(Util.getMid())) {
+						// 指定这台机器进行升级
+						Util.checkSoftVersion(true);
 					}
 				}
-				
+
 				// 自定义消息不是通知，默认不会被SDK展示到通知栏上，极光推送仅负责透传给SDK。其内容和展示形式完全由开发者自己定义。
 				// 自定义消息主要用于应用的内部业务逻辑和特殊展示需求
 			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {

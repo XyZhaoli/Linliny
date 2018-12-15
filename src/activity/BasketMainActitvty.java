@@ -105,9 +105,21 @@ public class BasketMainActitvty extends BaseActivity implements OnClickListener 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Util.disMissDialog(linliUrlQrDialog, BasketMainActitvty.this);
-		Util.disMissDialog(phoneNumReturnBasketDialog, BasketMainActitvty.this);
-		Util.disMissDialog(cardReturnBasketDialog, BasketMainActitvty.this);
+		if(linliUrlQrDialog != null) {
+			linliUrlQrDialog.dismiss();
+			linliUrlQrDialog = null;
+		}
+		if(phoneNumReturnBasketDialog != null) {
+			phoneNumReturnBasketDialog.dismiss();
+			phoneNumReturnBasketDialog = null;
+		}
+		if(cardReturnBasketDialog != null) {
+			cardReturnBasketDialog.dismiss();
+			cardReturnBasketDialog = null;
+		}
+//		Util.disMissDialog(linliUrlQrDialog, BasketMainActitvty.this);
+//		Util.disMissDialog(phoneNumReturnBasketDialog, BasketMainActitvty.this);
+//		Util.disMissDialog(cardReturnBasketDialog, BasketMainActitvty.this);
 	}
 
 	@Override

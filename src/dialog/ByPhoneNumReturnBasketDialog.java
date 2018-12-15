@@ -1,5 +1,6 @@
 package dialog;
 
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -15,12 +16,14 @@ import com.orhanobut.logger.Logger;
 
 import activity.BaseActivity;
 import activity.SplashActivity;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -76,7 +79,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	private boolean isSuccess = false;
 	private StringBuffer basketCode;
 	private StringBuffer serialCode;
-
+	
+	private SoundPool soundPool; // 播放声音是使用的声音池
+	private HashMap<Integer, Integer> spMap;
+	
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
 	}
@@ -99,6 +105,29 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		showNumberKeyboard();
 		initSerialJni();
 	}
+	
+	/**
+	 * 函数说明：初始化关于声音操作的函数
+	 */
+	@SuppressLint("UseSparseArrays")
+	public void initSoundPool() {
+		soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+		spMap = new HashMap<Integer, Integer>();
+		spMap.put(1, soundPool.load("/system/media/audio/alarms/Alarm_Beep_02.ogg", 1));
+	}
+	
+	/**
+	 * 函数说明：播放声音
+	 * 
+	 * @param sound
+	 *            播放声音文件的序号
+	 * @param num
+	 *            循环的次数
+	 */
+	public void playSound(int sound, int num) {
+		soundPool.play(spMap.get(sound), 1, 1, 1, num, 1);
+	}
+	
 
 	private void initData() {
 		mid = utils.Util.getMid();
@@ -122,6 +151,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				}
 				sum += cmd.length;
 				if (isHaveFullCmd(tempCardCmd, sum)) {
+					playSound(1, 0);
 					byte[] fullCmd = getFullCmd(tempCardCmd, sum);
 					getCardCodeWithToServer(fullCmd);
 					clearArray(tempCardCmd);
@@ -188,13 +218,15 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					if(TextUtils.isEmpty(basketCode.toString())) {
-						basketCode = basketCode.append(serialCode);
+					if (TextUtils.isEmpty(basketCode.toString())) {
+						int length = basketCode.length();
+						basketCode.delete(0, length);
 						sendReturnBasketCmd();
-						Log.e("------------", basketCode.toString());
 					}
+					basketCode = basketCode.append(serialCode);
+					Log.e("------------", basketCode.toString());
 				} else {
-					if(!TextUtils.isEmpty(basketCode.toString())) {
+					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
 						basketCode.delete(0, length);
 					}
@@ -263,13 +295,14 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-					if (cycleCount++ > 40) {
+					if (cycleCount++ > 120) {
+						Logger.e("还篮子的时候查询机器状态，超过次数，还篮子失败");
 						str2Voice("机器出错");
 						return;
 					}
 				}
 				// 延时100毫秒
-				utils.Util.delay(100);
+				Util.delay(100);
 				String baseketLocation = "0E-" + gid;
 				String[] rowAndColumnStr = baseketLocation.split("-");
 				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
@@ -301,14 +334,13 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			@Override
 			public void run() {
 				if (!TextUtils.isEmpty(basketCode.toString())) {
-					StringBuilder url = new StringBuilder(ConstantCmd.BASE_URLS).append("returnBasket.json?gid=").append(gid)
-							.append("&phone=").append(phoneNum).append("&Frid=").append(basketCode).append("&mid=").append(mid)
-							.append("&cardSerial=");
+					StringBuilder url = new StringBuilder(ConstantCmd.BASE_URLS).append("returnBasket.json?gid=")
+							.append(gid).append("&phone=").append(phoneNum).append("&Frid=").append(basketCode)
+							.append("&mid=").append(mid).append("&cardSerial=");
 					HttpUtils httpUtils = new HttpUtils();
 					httpUtils.configRequestRetryCount(20);
 					try {
 						httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
-
 							@Override
 							public void onFailure(HttpException arg0, String arg1) {
 								str2Voice("还篮子失败");
@@ -356,7 +388,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	// 从服务器获取篮子的位置
 	public void getBasketLocationFromServer(final String basketCodeStr) {
-		if(!TextUtils.isEmpty(serialCode.toString())) {
+		if (!TextUtils.isEmpty(serialCode.toString())) {
 			int length = serialCode.length();
 			serialCode.delete(0, length);
 		}
@@ -399,9 +431,9 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			tv_title.setText(titleName);
 			alertDialog = new AlertDialog.Builder(context, R.style.MyDialogStyle).setView(view).create();
 			alertDialog.setCanceledOnTouchOutside(false);
-			alertDialog.show();
-			View decorView = alertDialog.getWindow().getDecorView();
-			decorView.setBackgroundColor(Color.TRANSPARENT);
+			if (alertDialog != null && mContext != null) {
+				alertDialog.show();
+			}
 		}
 	}
 
@@ -493,16 +525,19 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			break;
 		}
 	}
+	
+	
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
+		Logger.e(Util.byteToHexstring(cmd, cmd.length));
 		if (cmd[3] == 0x00) {
 			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
 			sendGetMachineBasketCodeCmd();
 		} else if ((cmd[3] & 0xff) == 0xFF) {
 			// 此时机器未检测到篮子的编码，也就是说机器中没有篮子
-			utils.Util.sendMessage(handler, RETURN_BASKET_FAIL);
+			Util.sendMessage(handler, RETURN_BASKET_FAIL);
 		} else if (cmd[1] == 0x0E) {
-			utils.Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
+			Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
 			isSuccess = true;
 		}
 	}
@@ -598,6 +633,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		super.onStop();
 		JniThreadStop();
 		Util.disMissDialog(alertDialog, (Activity) mContext);
+		soundPool.release();
 		mContext = null;
 	}
 
@@ -640,7 +676,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				// 查询机器状态
 				while (true) {
 					// 判断机器此时的状态
-					if(MachineSateCode == 1 || MachineSateCode == 2) {
+					if (MachineSateCode == 1 || MachineSateCode == 2) {
 						break;
 					}
 					mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);

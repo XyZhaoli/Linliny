@@ -53,7 +53,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 	private Context mContext;
 	private boolean isHaveCardCode = false;
 	private static int MachineSateCode = 0;
-	
+
 	private StringBuffer cardCode;
 	private StringBuffer serialCode;
 	private StringBuffer basketCode;
@@ -94,7 +94,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 		public void handleMessage(android.os.Message msg) {
 			switch (msg.what) {
 			case CHECK_CARD_IS_MEMBERSHIP:
-				if(!isHaveCardCode) {
+				if (!isHaveCardCode) {
 					checkCardIsMembership(msg.obj.toString());
 				}
 				break;
@@ -106,7 +106,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				if (response == 1) {
 					// 是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					if(TextUtils.isEmpty(basketCode.toString())) {
+					if (TextUtils.isEmpty(basketCode.toString())) {
 						sendReturnBasketCmd();
 						int length = basketCode.length();
 						basketCode.delete(0, length);
@@ -198,7 +198,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				Util.DisplayToast(mContext, "请您前往商城注册会员");
 				break;
 			default:
-				if(!TextUtils.isEmpty(cardCode.toString())) {
+				if (!TextUtils.isEmpty(cardCode.toString())) {
 					int length = cardCode.length();
 					cardCode.delete(0, length);
 				}
@@ -377,7 +377,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				if(!TextUtils.isEmpty(serialCode.toString())) {
+				if (!TextUtils.isEmpty(serialCode.toString())) {
 					int length = serialCode.length();
 					serialCode.delete(0, length);
 				}
@@ -481,7 +481,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 			});
 			tv_title.setText(titleName);
 			alertDialog = new AlertDialog.Builder(context, R.style.MyDialogStyle).setView(view).create();
-			alertDialog.show();
+			if (alertDialog != null && mContext != null) {
+				alertDialog.show();
+			}
 			alertDialog.setCanceledOnTouchOutside(false);
 		}
 	}

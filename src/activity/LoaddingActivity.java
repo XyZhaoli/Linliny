@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -25,26 +26,39 @@ import uartJni.Uartjni;
 import utils.CommandPackage;
 import utils.ShoppingCarManager;
 import utils.ThreadManager;
+import utils.Util;
 import utils.VoiceUtils;
 
 public class LoaddingActivity extends BaseActivity {
 
+	protected static final int SEND_SHIPMENT_CMD = 0;
 	private TextView tvInfo;
 	private Uartjni mUartNative;
 	private ShoppingCarManager shoppingCarManager;
-	private static AtomicInteger MachineSateCode = new AtomicInteger(0);
+	private AtomicInteger MachineSateCode;
 	private int cycleCount;
-	private List<GoodsPosition> goodsPositions = new ArrayList<GoodsPosition>();
-	private static int shipmentCount = 0;
-	private Handler handler = new Handler();
-	private static final byte[] getMachineStateCmd = new byte[] { 0x02, 0x03, 0x10, 0x15 };
-	private static int currentFaultCode;
+	private List<GoodsPosition> goodsPositions;
+	private int shipmentCount = 0;
+	private Myhandler handler;
 	private String Ono;
 	private String outTradeNo;
 	private String membershipPayforCode;
 	private String payfor;
 	private String mid;
-	private Context mContext = LoaddingActivity.this;
+	private Context mContext;
+
+	class Myhandler extends Handler {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+			case SEND_SHIPMENT_CMD:
+				sendShipmentCmd();
+				break;
+			default:
+				break;
+			}
+		}
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -65,12 +79,15 @@ public class LoaddingActivity extends BaseActivity {
 					switch (arg1[2]) {
 					// 成功
 					case 0:
+						removeListGoods();
 						break;
 					// 出货失败，发送的命令格式错误
 					case (byte) 0xff:
 						break;
 					// 出货失败机器正忙
 					case (byte) 0xFE:
+						// TODO 出货失败，这种情况基本是机器出故障了
+
 						break;
 					// execute_error
 					case (byte) 0xFD:
@@ -88,43 +105,9 @@ public class LoaddingActivity extends BaseActivity {
 		mUartNative.BoardThreadStart();
 	}
 
-	protected void parseMachineFault(byte b) {
-		switch (b) {
-		// 定位故障(主电机或位置光电开关故障）
-		case 0x01:
-			currentFaultCode = 1;
-			break;
-		// 开门故障
-		case 0x02:
-			currentFaultCode = 2;
-			break;
-		// 关门故障
-		case 0x03:
-			currentFaultCode = 3;
-			break;
-		// 防夹传感器故障
-		case 0x04:
-			currentFaultCode = 4;
-			break;
-		// 制冷故障
-		case 0x05:
-			currentFaultCode = 5;
-			break;
-		// 加湿故障（缺水或长期湿度达不到设定值）
-		case 0x06:
-			currentFaultCode = 6;
-			break;
-		// 其他故障
-		case 0x07:
-			currentFaultCode = 7;
-			break;
-		// 主电机故障
-		case 0x08:
-			currentFaultCode = 8;
-			break;
-		default:
-			break;
-		}
+	protected void removeListGoods() {
+		GoodsPosition goodsPosition = goodsPositions.get(shipmentCount);
+		goodsPosition.setRemoveGoods(true);
 	}
 
 	protected void parseMachineStateCode(final byte cmd, final byte arg1) {
@@ -185,11 +168,15 @@ public class LoaddingActivity extends BaseActivity {
 			MachineSateCode.set(9);
 			// TODO 此处提醒用户此时机器处于故障状态；不能出货；
 			// 我们需要分析此时的故障的状态，然后上报服务器
-			parseMachineFault(arg1);
+			// parseMachineFault(arg1);
 			break;
 		// 还篮子状态
 		case 0x10:
 			MachineSateCode.set(10);
+			break;
+		// 机器回零状态
+		case 0x11:
+			MachineSateCode.set(11);
 			break;
 		default:
 			break;
@@ -203,7 +190,7 @@ public class LoaddingActivity extends BaseActivity {
 			public void run() {
 				// 减库存,测试时关闭减库存
 				String url = null;
-				if(TextUtils.isEmpty(payfor)) {
+				if (TextUtils.isEmpty(payfor)) {
 					return;
 				}
 				if (payfor.equals("wechat")) {
@@ -238,7 +225,7 @@ public class LoaddingActivity extends BaseActivity {
 		super.onDestroy();
 		JniThreadStop();
 	}
-	
+
 	private void JniThreadStop() {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
@@ -253,44 +240,51 @@ public class LoaddingActivity extends BaseActivity {
 
 	// 出货的准备
 	private void initData() {
-		Ono = getIntent().getStringExtra("Ono");
-		outTradeNo = getIntent().getStringExtra("outTradeNo");
+		goodsPositions = new ArrayList<GoodsPosition>();
+		MachineSateCode = new AtomicInteger(0);
+		MachineSateCode.set(-1);
+		mContext = LoaddingActivity.this;
+
+		handler = new Myhandler();
 		membershipPayforCode = getIntent().getStringExtra("membershipPayforCode");
+		outTradeNo = getIntent().getStringExtra("outTradeNo");
 		payfor = getIntent().getStringExtra("payfor");
+		Ono = getIntent().getStringExtra("Ono");
 		mid = utils.Util.getMid();
 		shoppingCarManager = ShoppingCarManager.getInstence();
-		MachineSateCode.set(-1);
-		final String goodsInfo = getIntent().getStringExtra("goodsInfo");
-		Logger.e(goodsInfo);
+		parseGoodsInfo(getIntent().getStringExtra("goodsInfo"));
+	}
+
+	public void sendShipmentCmd() {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					if(mUartNative == null) {
+					if (mUartNative == null) {
 						str2Voice("机器出错，请联系客服处理");
 						return;
 					}
 					shipmentCount = 0;
-					parseGoodsInfo(goodsInfo);
 					for (GoodsPosition goodsPosition : goodsPositions) {
 						cycleCount = 0;
 						while (true) {
-							if(MachineSateCode.get() == 1 ) {
+							if (MachineSateCode.get() == 1) {
 								break;
 							}
-							if(MachineSateCode.get() == 2) {
+							if (MachineSateCode.get() == 2) {
 								break;
 							}
 							// 判断机此时的状态
-							mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
-							if (cycleCount++ > 150){
+							mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd,
+									ConstantCmd.getMachineStateCmd.length);
+							if (cycleCount++ > 150) {
 								// TODO 注意这里的时，循环次数的问题
 								break;
 							}
-							if(cycleCount == 120) {
+							if (cycleCount == 120) {
 								str2Voice("请立即将货物取出");
 							}
-							utils.Util.delay(1000);
+							Util.delay(1000);
 						}
 
 						int columnNum = goodsPosition.getColumnNum();
@@ -298,7 +292,7 @@ public class LoaddingActivity extends BaseActivity {
 						byte[] command = CommandPackage.getRequestShipment(ConstantCmd.get_request_shipment_cmd, rowNum,
 								columnNum);
 						// 延时100毫秒
-						utils.Util.delay(200);
+						Util.delay(200);
 						// TODO 正在出货 发送下一个出货命令的时候 要注意询问机器此时的状态；
 						mUartNative.UartWriteCmd(command, command.length);
 						// 清除机器此时的状态
@@ -306,19 +300,20 @@ public class LoaddingActivity extends BaseActivity {
 						MachineSateCode.set(0);
 						shipmentCount++;
 						// 延时100毫秒
-						utils.Util.delay(200);
+						Util.delay(200);
 					}
 					cycleCount = 0;
 					while (true) {
-						utils.Util.delay(1000);
+						Util.delay(1000);
 						if (cycleCount++ > 120) {
 							break;
 						}
-						mUartNative.UartWriteCmd(getMachineStateCmd, getMachineStateCmd.length);
+						mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 						if (shipmentCount == goodsPositions.size() && MachineSateCode.get() == 0x01) {
 							break;
 						}
 					}
+					// 判断货物是否出出完
 					str2Voice("机器出货完成, 感谢您的本次购物");
 					removeInventory();
 					startActivity(new Intent(LoaddingActivity.this, SplashActivity.class));
@@ -329,33 +324,54 @@ public class LoaddingActivity extends BaseActivity {
 		});
 	}
 
-	private void parseGoodsInfo(String goodsInfo) {
-		Logger.e(goodsInfo);
-		if (!TextUtils.isEmpty(goodsInfo)) {
-			try {
-				String[] goodsListSArr = goodsInfo.split("\\*");
-				for (String goodsInfoStr : goodsListSArr) {
-					String[] singleGoodsInfoStr = goodsInfoStr.split("_");
-					// 商品的Yid
-					String Yid = singleGoodsInfoStr[0];
-					// 商品的数量
-					int goodsNum = Integer.valueOf(singleGoodsInfoStr[2]);
-					Goods goods = shoppingCarManager.getGoods(Yid);
-					String untiekes = goods.getUntiekes();
-					String goodsName = utils.Util.paseYname(goods.getYname());
-					String[] split = untiekes.split(",");
-					for (int i = 0; i < goodsNum; i++) {
-						String[] rowAndColumnStr = split[i].split("-");
-						GoodsPosition goodsPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
-								Integer.parseInt(rowAndColumnStr[1]), Yid, goodsName);
-						Logger.e(goodsPosition.getColumnNum() + ":" + goodsPosition.getRowNum());
-						goodsPositions.add(goodsPosition);
-					}
-				}
-			} catch (Exception e) {
-				e.printStackTrace();
+	/**
+	 * 是否完成出货
+	 * 
+	 * @return 完成出货 返回true，反之返回false
+	 */
+	public boolean isCompleteShipment() {
+		for (GoodsPosition goodsPosition : goodsPositions) {
+			if (!goodsPosition.isRemoveGoods()) {
+				return true;
 			}
 		}
+		return true;
+	}
+
+	private void parseGoodsInfo(final String goodsInfo) {
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				Logger.e(goodsInfo);
+				if (!TextUtils.isEmpty(goodsInfo)) {
+					try {
+						String[] goodsListSArr = goodsInfo.split("\\*");
+						for (String goodsInfoStr : goodsListSArr) {
+							String[] singleGoodsInfoStr = goodsInfoStr.split("_");
+							// 商品的Yid
+							String Yid = singleGoodsInfoStr[0];
+							// 商品的数量
+							int goodsNum = Integer.valueOf(singleGoodsInfoStr[2]);
+							Goods goods = shoppingCarManager.getGoods(Yid);
+							String untiekes = goods.getUntiekes();
+							String goodsName = utils.Util.paseYname(goods.getYname());
+							String[] split = untiekes.split(",");
+							for (int i = 0; i < goodsNum; i++) {
+								String[] rowAndColumnStr = split[i].split("-");
+								GoodsPosition goodsPosition = new GoodsPosition(
+										Integer.parseInt(rowAndColumnStr[0], 16), Integer.parseInt(rowAndColumnStr[1]),
+										Yid, goodsName, false);
+								Logger.e(goodsPosition.getColumnNum() + ":" + goodsPosition.getRowNum());
+								goodsPositions.add(goodsPosition);
+							}
+						}
+						Util.sendMessage(handler, SEND_SHIPMENT_CMD);
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
 	}
 
 	private void initView() {
@@ -377,8 +393,7 @@ public class LoaddingActivity extends BaseActivity {
 	public void changeTvTime(int time) {
 
 	}
-	
-	
+
 	private void str2Voice(final String string) {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
