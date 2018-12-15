@@ -79,10 +79,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	private boolean isSuccess = false;
 	private StringBuffer basketCode;
 	private StringBuffer serialCode;
-	
+
 	private SoundPool soundPool; // 播放声音是使用的声音池
 	private HashMap<Integer, Integer> spMap;
-	
+
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
 	}
@@ -104,8 +104,9 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		initData();
 		showNumberKeyboard();
 		initSerialJni();
+		initSoundPool();
 	}
-	
+
 	/**
 	 * 函数说明：初始化关于声音操作的函数
 	 */
@@ -115,7 +116,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		spMap = new HashMap<Integer, Integer>();
 		spMap.put(1, soundPool.load("/system/media/audio/alarms/Alarm_Beep_02.ogg", 1));
 	}
-	
+
 	/**
 	 * 函数说明：播放声音
 	 * 
@@ -125,9 +126,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	 *            循环的次数
 	 */
 	public void playSound(int sound, int num) {
-		soundPool.play(spMap.get(sound), 1, 1, 1, num, 1);
+		if (soundPool != null) {
+			soundPool.play(spMap.get(sound), 1, 1, 1, num, 1);
+		}
 	}
-	
 
 	private void initData() {
 		mid = utils.Util.getMid();
@@ -218,9 +220,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					if (TextUtils.isEmpty(basketCode.toString())) {
+					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
 						basketCode.delete(0, length);
+					} else {
 						sendReturnBasketCmd();
 					}
 					basketCode = basketCode.append(serialCode);
@@ -525,11 +528,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			break;
 		}
 	}
-	
-	
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
-		Logger.e(Util.byteToHexstring(cmd, cmd.length));
 		if (cmd[3] == 0x00) {
 			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
 			sendGetMachineBasketCodeCmd();
@@ -632,8 +632,12 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	protected void onStop() {
 		super.onStop();
 		JniThreadStop();
-		Util.disMissDialog(alertDialog, (Activity) mContext);
-		soundPool.release();
+		if (alertDialog != null && mContext != null) {
+			alertDialog.dismiss();
+		}
+		if (soundPool != null) {
+			soundPool.release();
+		}
 		mContext = null;
 	}
 
@@ -780,6 +784,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		String url = "http://linliny.com/checkPhoneVipCard.json?phone=" + phoneNumStr + "&CcardId=" + "&mid=" + mid;
 		phoneNum = phoneNumStr;
 		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.configCurrentHttpCacheExpiry(0);
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 			@Override
 			public void onFailure(HttpException arg0, String arg1) {

@@ -1,5 +1,7 @@
 package dialog;
 
+import java.util.HashMap;
+
 import org.json.JSONObject;
 
 import com.lidroid.xutils.HttpUtils;
@@ -17,6 +19,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
@@ -58,6 +62,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 	private StringBuffer serialCode;
 	private StringBuffer basketCode;
 
+	private SoundPool soundPool; // 播放声音是使用的声音池
+	private HashMap<Integer, Integer> spMap;
+
 	public ByCardReturnBasketDialog(Context context) {
 		super(context);
 	}
@@ -78,6 +85,31 @@ public class ByCardReturnBasketDialog extends Dialog {
 		initView();
 		initData();
 		initSerialJni();
+		initSoundPool();
+	}
+
+	/**
+	 * 函数说明：初始化关于声音操作的函数
+	 */
+	@SuppressLint("UseSparseArrays")
+	public void initSoundPool() {
+		soundPool = new SoundPool(5, AudioManager.STREAM_MUSIC, 0);
+		spMap = new HashMap<Integer, Integer>();
+		spMap.put(1, soundPool.load("/system/media/audio/alarms/Alarm_Beep_02.ogg", 1));
+	}
+
+	/**
+	 * 函数说明：播放声音
+	 * 
+	 * @param sound
+	 *            播放声音文件的序号
+	 * @param num
+	 *            循环的次数
+	 */
+	public void playSound(int sound, int num) {
+		if (soundPool != null) {
+			soundPool.play(spMap.get(sound), 1, 1, 1, num, 1);
+		}
 	}
 
 	private void initView() {
@@ -106,10 +138,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 				if (response == 1) {
 					// 是我们的篮子，开始还篮子
 					str2Voice("感应成功，请等候开门");
-					if (TextUtils.isEmpty(basketCode.toString())) {
-						sendReturnBasketCmd();
+					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
 						basketCode.delete(0, length);
+					} else {
+						sendReturnBasketCmd();
 					}
 					basketCode = basketCode.append(serialCode);
 					isHaveCardCode = false;
@@ -332,8 +365,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 	protected void onStop() {
 		super.onStop();
 		JniThreadStop();
-		if (alertDialog != null) {
+		if (alertDialog != null && mContext != null) {
 			alertDialog.dismiss();
+		}
+		if (soundPool != null) {
+			soundPool.release();
 		}
 	}
 
@@ -363,6 +399,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 			// 将篮子的编码发送到服务器中，验证是否是我们的篮子，如果是，获取还篮子的位置
 			if (code > 0) {
 				getBasketLocationFromServer(String.valueOf(code));
+				playSound(1, 0);
 			}
 		} catch (Exception e) {
 			str2Voice("读取数据失败，请稍后再试");
@@ -387,6 +424,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 					StringBuffer url = new StringBuffer("http://linliny.com/checkPhoneVipCard.json?phone=&cardSerial=")
 							.append(uartCode).append("&mid=").append(mid);
 					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.configCurrentHttpCacheExpiry(0);
 					httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 
 						@Override

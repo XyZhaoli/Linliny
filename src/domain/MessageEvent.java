@@ -2,28 +2,34 @@ package domain;
 
 public class MessageEvent {
 
-	private byte[] cmd;
-	private int tag;
+	public Object obj;
+	public int flag;
 
-	public MessageEvent(byte[] cmd, int tag) {
-		this.cmd = cmd;
-		this.tag = tag;
+	public MessageEvent(Object obj, int flag) {
+		super();
+		this.obj = obj;
+		this.flag = flag;
 	}
 
-	public byte[] getCmd() {
-		return cmd;
+	public MessageEvent(int flag) {
+		super();
+		this.flag = flag;
 	}
 
-	public void setCmd(byte[] cmd) {
-		this.cmd = cmd;
+	public Object getObj() {
+		return obj;
 	}
 
-	public int getTag() {
-		return tag;
+	public void setObj(Object obj) {
+		this.obj = obj;
 	}
 
-	public void setTag(int tag) {
-		this.tag = tag;
+	public int getFlag() {
+		return flag;
+	}
+
+	public void setFlag(int flag) {
+		this.flag = flag;
 	}
 
 }

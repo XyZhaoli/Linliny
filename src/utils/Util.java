@@ -1,10 +1,8 @@
 package utils;
 
-import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,7 +19,6 @@ import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 import com.orhanobut.logger.Logger;
 
-import activity.BasketMainActitvty;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Dialog;
@@ -32,9 +29,7 @@ import android.graphics.Paint;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.Gravity;
 import android.widget.TextView;
 import android.widget.Toast;
 import domain.ConstantCmd;
