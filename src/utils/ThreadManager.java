@@ -18,13 +18,11 @@ public class ThreadManager {
 			synchronized (ThreadManager.class) {
 				if (mThreadPool == null) {
 					int cpuCount = Runtime.getRuntime().availableProcessors();// 获取cpu数量
-					System.out.println("cup个数:" + cpuCount);
 					int threadCount = 10;
 					mThreadPool = new ThreadPool(threadCount, threadCount, 1L);
 				}
 			}
 		}
-
 		return mThreadPool;
 	}
 

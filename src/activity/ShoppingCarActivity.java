@@ -81,23 +81,23 @@ public class ShoppingCarActivity extends BaseActivity implements AdapterView.OnI
 			}
 		});
 		btnPayfor = (Button) findViewById(R.id.btn_pay_for);
-		listView1.setAdapter(new MyAdapterCart(shoppingCarManager.getInstence().getShoppingCarGoods()));
+		listView1.setAdapter(new MyAdapterCart(ShoppingCarManager.getInstence().getShoppingCarGoods()));
 
 		btnPayfor.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
 				if (shoppingCarManager.getShoppingCarGoods().size() == 0) {
 					Toast.makeText(ShoppingCarActivity.this, "购物车空空如也，快去添加商品到购物车里卖来吧！", Toast.LENGTH_LONG).show();
 				} else {
-					final PayforResponse urls = getPackageUrls();
 					ThreadManager.getThreadPool().execute(new Runnable() {
 						@Override
 						public void run() {
 							try {
+								final PayforResponse response = getPackageUrls();
 								HttpUtils httpUtils = new HttpUtils();
 								httpUtils.configCurrentHttpCacheExpiry(1000);
 								String wechatResponse;
-								wechatResponse = httpUtils.sendSync(HttpMethod.GET, urls.getWechatRes()).readString();
-								String alipayReponse = httpUtils.sendSync(HttpMethod.GET, urls.getAliPayRes()).readString();
+								wechatResponse = httpUtils.sendSync(HttpMethod.GET, response.getWechatRes()).readString();
+								String alipayReponse = httpUtils.sendSync(HttpMethod.GET, response.getAliPayRes()).readString();
 								if (!TextUtils.isEmpty(wechatResponse) && !TextUtils.isEmpty(alipayReponse)) {
 									PayforResponse urls = new PayforResponse(wechatResponse, alipayReponse);
 									utils.Util.sendMessage(handler, WECHAT_FLAG, urls);

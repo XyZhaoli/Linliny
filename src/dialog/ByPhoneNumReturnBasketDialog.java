@@ -244,7 +244,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 			case RETURN_BASKET_FAIL:
 				// 这个时候还篮子失败，通知服务器
-				utils.Util.DisplayToast(mContext, "还篮子失败");
+				Util.DisplayToast(mContext, "还篮子失败");
 				str2Voice("还篮子失败，请将篮子取出，关门后再试");
 				if (mContext != null) {
 					((Activity) mContext).startActivity(new Intent(mContext, SplashActivity.class));
@@ -293,11 +293,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						return;
 					}
 					mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
+					Util.delay(1000);
 					if (cycleCount++ > 120) {
 						Logger.e("还篮子的时候查询机器状态，超过次数，还篮子失败");
 						str2Voice("机器出错");
@@ -341,7 +337,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 							.append(gid).append("&phone=").append(phoneNum).append("&Frid=").append(basketCode)
 							.append("&mid=").append(mid).append("&cardSerial=");
 					HttpUtils httpUtils = new HttpUtils();
-					httpUtils.configRequestRetryCount(20);
+					httpUtils.configCurrentHttpCacheExpiry(0);
 					try {
 						httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 							@Override
@@ -398,6 +394,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 		serialCode = serialCode.append(basketCodeStr);
 		String url = "http://linliny.com/checkBasket.json?Frid=" + basketCodeStr;
 		HttpUtils httpUtils = new HttpUtils();
+		httpUtils.configCurrentHttpCacheExpiry(0);
 		httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 			@Override
 			public void onFailure(HttpException arg0, String arg1) {
@@ -548,7 +545,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	protected void sendGetMachineBasketCodeCmd() {
 		if (!isSuccess) {
 			byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
-			utils.Util.delay(2000);
+			Util.delay(2000);
 			mUartNative.UartWriteCmd(cmd, cmd.length);
 		}
 	}

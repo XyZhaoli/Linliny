@@ -235,9 +235,8 @@ public class GoodsDetailDialog extends Dialog implements android.view.View.OnCli
 					goodsInfo.append(itemYid).append("_").append(Price).append("_").append(num);
 					// 获取微信json
 					StringBuilder wx = new StringBuilder();
-					wx.append(ConstantCmd.BASE_URLS + "AddOrd.json?Mid=").append(Mid).append("&Total=")
-							.append(tol).append("&Goods=").append(itemYid).append("_").append(Price).append("_")
-							.append(num);
+					wx.append(ConstantCmd.BASE_URLS + "AddOrd.json?Mid=").append(Mid).append("&Total=").append(tol)
+							.append("&Goods=").append(itemYid).append("_").append(Price).append("_").append(num);
 					Logger.e(wx.toString());
 					String wechatRes = httpUtils.sendSync(HttpMethod.GET, wx.toString()).readString();
 					// 获取支付宝json
@@ -249,16 +248,18 @@ public class GoodsDetailDialog extends Dialog implements android.view.View.OnCli
 					Logger.e(zf.toString());
 					String aliPayRes = httpUtils.sendSync(HttpMethod.GET, zf.toString()).readString();
 
-					utils.Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
+					Util.sendMessage(handler, GET_RESPONSE, new PayforResponse(wechatRes, aliPayRes));
 
 				} catch (Exception e) {
 					e.printStackTrace();
 					((Activity) mContext).runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							utils.Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
+							Util.DisplayToast(mContext, "网络错误，请重试", R.drawable.warning);
 							str2Voice("网络错误，请重试");
-							Util.disMissDialog(dialog, (Activity) mContext);
+							if (dialog != null && mContext != null) {
+								dialog.dismiss();
+							}
 						}
 					});
 				}
