@@ -13,6 +13,7 @@ import com.orhanobut.logger.Logger;
 
 import activity.BaseActivity;
 import activity.SplashActivity;
+import android.R.bool;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -24,6 +25,7 @@ import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
@@ -56,6 +58,8 @@ public class ByCardReturnBasketDialog extends Dialog {
 	private static int sum = 0;
 	private Context mContext;
 	private boolean isHaveCardCode = false;
+	// 是否完成还篮子，不管失败或者成功；
+	private boolean isComplteWork = false;
 	private static int MachineSateCode = 0;
 
 	private StringBuffer cardCode;
@@ -137,11 +141,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 				int response = parseJson(msg.obj.toString(), "check");
 				if (response == 1) {
 					// 是我们的篮子，开始还篮子
-					str2Voice("感应成功，请等候开门");
 					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
 						basketCode.delete(0, length);
 					} else {
+						str2Voice("感应成功，请等候开门");
 						sendReturnBasketCmd();
 					}
 					basketCode = basketCode.append(serialCode);
@@ -154,13 +158,17 @@ public class ByCardReturnBasketDialog extends Dialog {
 				// 这个时候还篮子失败，通知服务器
 				Util.DisplayToast(mContext, "还篮子失败");
 				str2Voice("还篮子失败，请将篮子取出，关门后再试");
-				((Activity) mContext).startActivity(new Intent(((Activity) mContext), SplashActivity.class));
-				((Activity) mContext).finish();
+				isComplteWork = true;
+				if (mContext != null) {
+					((Activity) mContext).startActivity(new Intent(((Activity) mContext), SplashActivity.class));
+					((Activity) mContext).finish();
+				}
 				break;
 			case SEND_RETURN_BASKET_CMD_SUCCESS:
 				str2Voice("请您等候机器开门");
 				break;
 			case RETURN_BASKET_SUCCESS:
+				isComplteWork = true;
 				returnBasketMoney();
 				break;
 			default:
@@ -298,6 +306,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_return_basket_cmd,
 						basketPosition.getRowNum(), basketPosition.getColumnNum());
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
+				while (!isComplteWork) {
+					Util.delay(500);
+					mUartNative.UartWriteCmd(cmd, cmd.length);
+				}
 			}
 		});
 	}
@@ -340,7 +353,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				case 0x00:
 					// TODO 此时表示还篮子成功，我们将还篮子成功的消息发送给服务器
 					// 换篮子成功以后，获取机器检测到的篮子编码
-					sendGetMachineBasketCodeCmd();
+					//sendGetMachineBasketCodeCmd();
 					break;
 
 				case 0x10:
@@ -399,6 +412,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 			// 将篮子的编码发送到服务器中，验证是否是我们的篮子，如果是，获取还篮子的位置
 			if (code > 0) {
 				getBasketLocationFromServer(String.valueOf(code));
+				Log.e("code", code + "");
 				playSound(1, 0);
 			}
 		} catch (Exception e) {
@@ -547,9 +561,10 @@ public class ByCardReturnBasketDialog extends Dialog {
 		for (int i = 0; i < length; i++) {
 			if (array[i] == 0x20) {
 				start = i;
+				break;
 			}
-			System.arraycopy(array, start, temp, 0, 14);
 		}
+		System.arraycopy(array, start, temp, 0, 14);
 		return temp;
 	}
 
@@ -561,10 +576,14 @@ public class ByCardReturnBasketDialog extends Dialog {
 	}
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
-		if (cmd[3] == 0x00) {
-			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
-			sendGetMachineBasketCodeCmd();
-		} else if ((cmd[3] & 0xff) == 0xFF) {
+		// if (cmd[3] == 0x00) {
+		// // 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
+		// sendGetMachineBasketCodeCmd();
+		// } else
+		if (isComplteWork) {
+			return;
+		}
+		if ((cmd[3] & 0xff) == 0xFF) {
 			// 此时机器未检测到篮子的编码，也就是说机器中没有篮子
 			Util.sendMessage(handler, RETURN_BASKET_FAIL);
 			// TODO 后续还需要做的工作 如果篮子已经放进去了 但是有检测到编码，这个时候需要开门，用户将篮子取走
@@ -581,14 +600,11 @@ public class ByCardReturnBasketDialog extends Dialog {
 		ThreadManager.getThreadPool().execute(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					Thread.sleep(2000);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
+				while (!isComplteWork) {
+					byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
+					Util.delay(500);
+					mUartNative.UartWriteCmd(cmd, cmd.length);
 				}
-				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
-				utils.Util.delay(100);
-				mUartNative.UartWriteCmd(cmd, cmd.length);
 			}
 		});
 	}

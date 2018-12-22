@@ -24,7 +24,7 @@ public class MyApplication extends Application {
 		SpeechUtility.createUtility(getApplicationContext(), SpeechConstant.APPID + "=5bbaf3a2");
 		CrashReport.initCrashReport(getApplicationContext(), "2f1f25f886", false);
 		Logger.addLogAdapter(new DiskLogAdapter());
-        JPushInterface.setDebugMode(true); 	// 设置开启日志,发布时请关闭日志
-        JPushInterface.init(getApplicationContext()); // 初始化 JPush
+		JPushInterface.setDebugMode(true); // 设置开启日志,发布时请关闭日志
+		JPushInterface.init(getApplicationContext()); // 初始化 JPush
 	}
 }

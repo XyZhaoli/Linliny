@@ -76,7 +76,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	private int MachineSateCode = 0;
 	private byte[] tempCardCmd = new byte[64];
 	private int sum = 0;
-	private boolean isSuccess = false;
+	// 是否完成还篮子，不管失败或者成功；
+	private boolean isComplteWork = false;
 	private StringBuffer basketCode;
 	private StringBuffer serialCode;
 
@@ -172,8 +173,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				// 5.开门以后，关门验证，验证篮子是否已经到位，到位以后发送服务器告知目前已经还篮子成功；
 				switch (cmd[2]) {
 				case 0:
-					// TODO 此时表示发送还篮子命令成功，
-					sendGetMachineBasketCodeCmd();
+					// TODO 此时表示发送还篮子命令成功  2018/12/20 还是将这里的检查还篮子情况移动到 我们一发送还篮子命令后，就开始检查还篮子成功与否的情况
+					//sendGetMachineBasketCodeCmd();
 					break;
 
 				case (byte) 0xff:
@@ -219,11 +220,11 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				int response = parseJson(msg.obj.toString(), "check");
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
-					str2Voice("感应成功，请等候开门");
 					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
 						basketCode.delete(0, length);
 					} else {
+						str2Voice("感应成功，请等候开门");
 						sendReturnBasketCmd();
 					}
 					basketCode = basketCode.append(serialCode);
@@ -247,12 +248,13 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				Util.DisplayToast(mContext, "还篮子失败");
 				str2Voice("还篮子失败，请将篮子取出，关门后再试");
 				if (mContext != null) {
+					isComplteWork = true;
 					((Activity) mContext).startActivity(new Intent(mContext, SplashActivity.class));
 				}
 				break;
 			case RETURN_BASKET_SUCCESS:
 				// TODO 还篮子成功以后 通知服务器退款
-				str2Voice("还篮子成功,请注意商城退款通知");
+				isComplteWork = true;
 				returnBasketMoney();
 				break;
 
@@ -280,7 +282,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						break;
 					}
 					if (MachineSateCode == 11) {
-						str2Voice("机器维护，请稍后再试");
+						str2Voice("机器正在调整位置，请您稍后再试");
 						mContext.startActivity(new Intent(mContext, SplashActivity.class));
 						return;
 					}
@@ -309,6 +311,12 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_return_basket_cmd,
 						basketPosition.getRowNum(), basketPosition.getColumnNum());
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
+				//将检查还篮子成功与否，放在这里，防止出现通信失败的问题出现（check error）
+				while (!isComplteWork) {
+					byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
+					Util.delay(500);
+					mUartNative.UartWriteCmd(cmd, cmd.length);
+				}
 			}
 		});
 	}
@@ -527,15 +535,20 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	}
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
-		if (cmd[3] == 0x00) {
-			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
-			sendGetMachineBasketCodeCmd();
-		} else if ((cmd[3] & 0xff) == 0xFF) {
+		Log.e("parseMachineBasketCmd", Util.byteToHexstring(cmd, cmd.length));
+		//TODO  
+//		if (cmd[3] == 0x00) {
+//			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
+//			sendGetMachineBasketCodeCmd();
+//		} else 
+		if(isComplteWork) {
+			return;
+		}
+		if ((cmd[3] & 0xff) == 0xFF) {
 			// 此时机器未检测到篮子的编码，也就是说机器中没有篮子
 			Util.sendMessage(handler, RETURN_BASKET_FAIL);
 		} else if (cmd[1] == 0x0E) {
 			Util.sendMessage(handler, RETURN_BASKET_SUCCESS);
-			isSuccess = true;
 		}
 	}
 
@@ -543,11 +556,16 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	 * 发送获取机器篮子编码的命令
 	 */
 	protected void sendGetMachineBasketCodeCmd() {
-		if (!isSuccess) {
-			byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
-			Util.delay(2000);
-			mUartNative.UartWriteCmd(cmd, cmd.length);
-		}
+		ThreadManager.getThreadPool().execute(new Runnable() {
+			@Override
+			public void run() {
+				while (!isComplteWork) {
+					byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
+					Util.delay(500);
+					mUartNative.UartWriteCmd(cmd, cmd.length);
+				}
+			}
+		});
 	}
 
 	/**

@@ -161,7 +161,7 @@ public class quhuoActitvty extends BaseActivity implements OnClickListener {
 					switch (arg1[2]) {
 					// 成功
 					case 0:
-						str2voice("准备出货，请稍等");
+						str2voice("正在开门，请稍等");
 						break;
 					// 出货失败，发送的命令格式错误
 					case (byte) 0xff:
@@ -308,7 +308,6 @@ public class quhuoActitvty extends BaseActivity implements OnClickListener {
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-						Log.e("出货", "*********************************出货***********************************");
 					}
 					cycleCount = 0;
 					while (MachineSateCode != 1) {
@@ -414,23 +413,14 @@ public class quhuoActitvty extends BaseActivity implements OnClickListener {
 		// 正在开门
 		case 0x04:
 			if (MachineSateCode != 4) {
-				str2voice("正在开门，请注意取货");
+				str2voice("正在准备出货，请稍等");
 			}
 			MachineSateCode = 4;
 			break;
 		// 等待取物状态
 		case 0x05:
 			if (MachineSateCode != 5) {
-				handler.post(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							str2voice("出货成功，请您注意取货");
-						} catch (Exception e) {
-
-						}
-					}
-				});
+				str2voice("出货成功，请您注意取货");
 			}
 			MachineSateCode = 5;
 			break;

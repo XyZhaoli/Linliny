@@ -555,6 +555,7 @@ public class CheckOutDialog extends Dialog implements View.OnClickListener {
 					String url = ConstantCmd.BASE_URLS + "UpdateUserCard.json?CcardId=" + code + "&Goods=" + goodsInfo
 							+ "&Mid=" + utils.Util.getMid() + "&Pwd=" + etPassword.getText().toString() + "&Total="
 							+ totalPrice;
+					Log.e("CardUrl", url);
 					HttpUtils httpUtils = new HttpUtils();
 					httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 

@@ -42,13 +42,14 @@ public class ExitActivity extends Activity {
 				String name = etName.getText().toString().trim();
 				if (!TextUtils.isEmpty(password) && !TextUtils.isEmpty(name)) {
 					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.configCurrentHttpCacheExpiry(0);
 					StringBuilder url = new StringBuilder(ConstantCmd.BASE_URLS).append("loginReic.json?Ruser=")
 							.append(name).append("&Rpass=").append(password);
 					httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
-							Toast.makeText(ExitActivity.this, "请重试", Toast.LENGTH_LONG).show();
+							Toast.makeText(ExitActivity.this, "网络请求失败，请重试", Toast.LENGTH_LONG).show();
 						}
 
 						@Override

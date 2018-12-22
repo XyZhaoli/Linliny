@@ -13,7 +13,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -23,7 +22,6 @@ import android_serialport_api.sample.R;
 import domain.ConstantCmd;
 import domain.Goods;
 import domain.GoodsPosition;
-import domain.MessageEvent;
 import uartJni.Uartjni;
 import utils.CommandPackage;
 import utils.ShoppingCarManager;
@@ -258,7 +256,6 @@ public class LoaddingActivity extends BaseActivity {
 							if (MachineSateCode.get() == 2) {
 								break;
 							}
-							Log.e("MachineSateCode", MachineSateCode.get() + "");
 							// 判断机此时的状态
 							mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd,
 									ConstantCmd.getMachineStateCmd.length);
@@ -296,7 +293,6 @@ public class LoaddingActivity extends BaseActivity {
 						if (cycleCount++ > 120) {
 							break;
 						}
-						Log.e("TAG", "FD++++++++++++++++++++++++++++++++");
 						Util.delay(1000);
 					}
 					// 判断货物是否出出完
