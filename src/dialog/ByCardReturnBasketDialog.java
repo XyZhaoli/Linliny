@@ -13,7 +13,6 @@ import com.orhanobut.logger.Logger;
 
 import activity.BaseActivity;
 import activity.SplashActivity;
-import android.R.bool;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -25,7 +24,6 @@ import android.media.SoundPool;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 import android_serialport_api.sample.R;
@@ -309,6 +307,9 @@ public class ByCardReturnBasketDialog extends Dialog {
 				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
 				while (!isComplteWork) {
 					Util.delay(500);
+					if (mUartNative == null) {
+						return;
+					}
 					mUartNative.UartWriteCmd(cmd, cmd.length);
 				}
 			}
@@ -353,7 +354,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 				case 0x00:
 					// TODO 此时表示还篮子成功，我们将还篮子成功的消息发送给服务器
 					// 换篮子成功以后，获取机器检测到的篮子编码
-					//sendGetMachineBasketCodeCmd();
+					// sendGetMachineBasketCodeCmd();
 					break;
 
 				case 0x10:
@@ -412,7 +413,6 @@ public class ByCardReturnBasketDialog extends Dialog {
 			// 将篮子的编码发送到服务器中，验证是否是我们的篮子，如果是，获取还篮子的位置
 			if (code > 0) {
 				getBasketLocationFromServer(String.valueOf(code));
-				Log.e("code", code + "");
 				playSound(1, 0);
 			}
 		} catch (Exception e) {
@@ -461,6 +461,7 @@ public class ByCardReturnBasketDialog extends Dialog {
 					// 然后将篮子的编码发送给服务器进行验证
 					StringBuffer url = new StringBuffer("http://linliny.com/checkBasket.json?Frid=").append(uartCode);
 					HttpUtils httpUtils = new HttpUtils();
+					httpUtils.configCurrentHttpCacheExpiry(0);
 					httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 
 						@Override

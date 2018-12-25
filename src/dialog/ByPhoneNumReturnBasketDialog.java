@@ -29,7 +29,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -228,7 +227,6 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						sendReturnBasketCmd();
 					}
 					basketCode = basketCode.append(serialCode);
-					Log.e("------------", basketCode.toString());
 				} else {
 					if (!TextUtils.isEmpty(basketCode.toString())) {
 						int length = basketCode.length();
@@ -312,9 +310,12 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 						basketPosition.getRowNum(), basketPosition.getColumnNum());
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
 				//将检查还篮子成功与否，放在这里，防止出现通信失败的问题出现（check error）
+				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
 				while (!isComplteWork) {
-					byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
 					Util.delay(500);
+					if(mUartNative == null) {
+						return;
+					}
 					mUartNative.UartWriteCmd(cmd, cmd.length);
 				}
 			}
@@ -346,6 +347,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 							.append("&mid=").append(mid).append("&cardSerial=");
 					HttpUtils httpUtils = new HttpUtils();
 					httpUtils.configCurrentHttpCacheExpiry(0);
+					httpUtils.configRequestRetryCount(20);
 					try {
 						httpUtils.send(HttpMethod.GET, url.toString(), new RequestCallBack<String>() {
 							@Override
@@ -535,12 +537,6 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	}
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
-		Log.e("parseMachineBasketCmd", Util.byteToHexstring(cmd, cmd.length));
-		//TODO  
-//		if (cmd[3] == 0x00) {
-//			// 此时表示正在读篮子的编码,但是还未读取到篮子的编码，继续发送命令获取篮子的编码
-//			sendGetMachineBasketCodeCmd();
-//		} else 
 		if(isComplteWork) {
 			return;
 		}
