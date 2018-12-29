@@ -1,5 +1,6 @@
 package broadcastReceive;
 
+import activity.UartActivity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -26,11 +27,7 @@ public class MessageReceiver extends BroadcastReceiver {
 		try {
 			Bundle bundle = intent.getExtras();
 
-			if (JPushInterface.ACTION_REGISTRATION_ID.equals(intent.getAction())) {
-				String regId = bundle.getString(JPushInterface.EXTRA_REGISTRATION_ID);
-				Log.e(TAG, "[MyReceiver] 接收Registration Id : " + regId);
-
-			} else if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
+			if (JPushInterface.ACTION_MESSAGE_RECEIVED.equals(intent.getAction())) {
 				// 设置进入服务器维护模式
 				Log.e(TAG, bundle.getString(JPushInterface.EXTRA_MESSAGE));
 				if (!TextUtils.isEmpty(bundle.getString(JPushInterface.EXTRA_MESSAGE))) {
@@ -50,35 +47,15 @@ public class MessageReceiver extends BroadcastReceiver {
 							&& message.getMid() == Integer.parseInt(Util.getMid())) {
 						// 指定这台机器进行升级
 						Util.checkSoftVersion(true);
+					} else if (message.getFlag() == ConstantCmd.OPEN_REPLENISHMENT_APP
+							&& message.getMid() == Integer.parseInt(Util.getMid())) {
+						Intent intents = new Intent(context, UartActivity.class);
+						intents.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+						context.startActivity(intents);
 					}
 				}
-
 				// 自定义消息不是通知，默认不会被SDK展示到通知栏上，极光推送仅负责透传给SDK。其内容和展示形式完全由开发者自己定义。
 				// 自定义消息主要用于应用的内部业务逻辑和特殊展示需求
-			} else if (JPushInterface.ACTION_NOTIFICATION_RECEIVED.equals(intent.getAction())) {
-				Log.e(TAG, "[MyReceiver] 接收到推送下来的通知");
-
-				String extra_json = bundle.getString(JPushInterface.EXTRA_EXTRA);
-				if (!TextUtils.isEmpty(extra_json))
-					Log.d(TAG, "[MyReceiver] 接收到推送下来的通知附加字段" + extra_json);
-
-				// 可以利用附加字段来区别Notication,指定不同的动作,extra_json是个json字符串
-				// 通知（Notification），指在手机的通知栏（状态栏）上会显示的一条通知信息
-			} else if (JPushInterface.ACTION_NOTIFICATION_OPENED.equals(intent.getAction())) {
-				Log.e(TAG, "[MyReceiver] 用户点击打开了通知");
-
-				// 在这里根据 JPushInterface.EXTRA_EXTRA(附加字段) 的内容处理代码，
-				// 比如打开新的Activity， 打开一个网页等..
-
-			} else if (JPushInterface.ACTION_RICHPUSH_CALLBACK.equals(intent.getAction())) {
-				Log.e(TAG, "[MyReceiver] 用户收到到RICH PUSH CALLBACK: " + bundle.getString(JPushInterface.EXTRA_EXTRA));
-				// 在这里根据 JPushInterface.EXTRA_EXTRA 的内容处理代码，比如打开新的Activity， 打开一个网页等..
-
-			} else if (JPushInterface.ACTION_CONNECTION_CHANGE.equals(intent.getAction())) {
-				boolean connected = intent.getBooleanExtra(JPushInterface.EXTRA_CONNECTION_CHANGE, false);
-				Log.e(TAG, "[MyReceiver]" + intent.getAction() + " connected state change to " + connected);
-			} else {
-				Log.e(TAG, "[MyReceiver] Unhandled intent - " + intent.getAction());
 			}
 
 		} catch (Exception e) {

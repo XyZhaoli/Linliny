@@ -30,5 +30,6 @@ public class ConstantCmd {
 
 	// 机器单独的升级
 	public static final int MAHINE_ALONE_UPDATE = 3;
+	public static final int OPEN_REPLENISHMENT_APP = 4;
 
 }

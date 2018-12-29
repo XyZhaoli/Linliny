@@ -9,7 +9,7 @@
     <view.BannerLayout
         android:id="@+id/banner1"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="700dp"
         app:indicatorMargin="10dp"
         app:indicatorShape="oval"
         app:indicatorSpace="10dp"

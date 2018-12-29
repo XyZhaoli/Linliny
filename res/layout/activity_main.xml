@@ -1,0 +1,608 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="#fff"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前温度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_tem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="32.5℃"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设备号:"
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_devices_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前湿度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_hum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="32.5%Rh"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前机器状态："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_machine_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="待机状态"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前机器故障状态："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_machine_fault_state"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前位置："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_local"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0A-8"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#0f0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定温度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_current_set_tem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="32.5℃"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定湿度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_current_set_hum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="32.5%Rh"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定旋转时间间隔："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_machine_current_set_rotate_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定的回零修正："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_machine_current_setup_param"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定的位置修正值："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_local_current_set"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前设定的每圈脉冲数："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/tv_current_set_pulse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="无"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#0f0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置当前温度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_tem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的温度"
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_tem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前湿度："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_hum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的湿度"
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_hum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置待机旋转时间："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_rotate_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的参数"
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_rotate_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="回零修正："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_local_param"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的参数"
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_local_param"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="定位修正："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_param"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的参数"
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_param"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textColor="#000"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="每圈脉冲数："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_pulse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设置的脉冲数"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_pulse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textSize="24sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="10dp" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设备号："
+                android:textColor="#000"
+                android:textSize="24sp" />
+
+            <EditText
+                android:id="@+id/et_setup_device_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:hint="请输入设备号："
+                android:textColor="#000"
+                android:textSize="24sp" >
+            </EditText>
+
+            <Button
+                android:id="@+id/bt_setup_device_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="设置"
+                android:textSize="24sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="10dp" >
+
+        <Button
+            android:id="@+id/bt_replenishment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="批量补货"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_replenishment_finish"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="补货完成"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_refresh_param"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="刷新参数"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_clear_basket"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="清空篮子"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_return_luncher"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打开售卖机APP"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_restart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="机器重启"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_open_wifi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="打开热点"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/bt_back_desktop"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="进入设置"
+            android:textSize="24sp" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/et_show_cmd_str"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/plus_minus_shape"
+        android:focusable="false"
+        android:gravity="top" />
+
+</LinearLayout>

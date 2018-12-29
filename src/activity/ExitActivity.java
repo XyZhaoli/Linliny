@@ -10,7 +10,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -18,7 +17,6 @@ import android.widget.EditText;
 import android.widget.Toast;
 import android_serialport_api.sample.R;
 import domain.ConstantCmd;
-import utils.Util;
 
 public class ExitActivity extends Activity {
 	private EditText etName;
@@ -54,7 +52,6 @@ public class ExitActivity extends Activity {
 
 						@Override
 						public void onSuccess(ResponseInfo<String> arg0) {
-							Log.e("arg0", arg0.result.toString());
 							final boolean contains = arg0.result.toString().contains("result");
 							runOnUiThread(new Runnable() {
 								@Override
@@ -62,10 +59,7 @@ public class ExitActivity extends Activity {
 									if (contains) {
 										Toast.makeText(ExitActivity.this, "密码或者账号错误", Toast.LENGTH_LONG).show();
 									} else {
-										Intent intent = getPackageManager()
-												.getLaunchIntentForPackage("com.ycf.uartmaster");
-										startActivity(intent);
-										android.os.Process.killProcess(android.os.Process.myPid());
+										startActivity(new Intent(ExitActivity.this, UartActivity.class));
 									}
 								}
 							});

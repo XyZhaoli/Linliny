@@ -376,7 +376,7 @@ public class BannerLayout extends RelativeLayout {
 				}
 			}
 		});
-		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+		imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 		if (defaultImage != 0) {
 			if (getContext() != null) {
 				Glide.with(getContext()).load(url).placeholder(defaultImage).centerCrop().into(imageView);

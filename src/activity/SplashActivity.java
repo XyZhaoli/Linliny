@@ -55,7 +55,7 @@ public class SplashActivity extends Activity {
 				if (SharePreferenceUtils.getBoolean(getApplicationContext(), "MACHINE_MAINTENANCE", false)) {
 					mImageView.setScaleType(ImageView.ScaleType.CENTER);
 					tvMachineState.setVisibility(View.VISIBLE);
-					tvMachineState.setText("机器维护，停止服务");
+					tvMachineState.setText("机器正在升级，停止服务");
 					Glide.with(SplashActivity.this).load(R.drawable.server_update).into(mImageView);
 					return;
 				}
@@ -79,7 +79,7 @@ public class SplashActivity extends Activity {
 		if (SharePreferenceUtils.getBoolean(getApplicationContext(), "MACHINE_MAINTENANCE", false)) {
 			mImageView.setScaleType(ImageView.ScaleType.CENTER);
 			tvMachineState.setVisibility(View.VISIBLE);
-			tvMachineState.setText("机器维护，停止服务");
+			tvMachineState.setText("机器正在升级，停止服务");
 			Glide.with(SplashActivity.this).load(R.drawable.server_update).into(mImageView);
 		}
 	}

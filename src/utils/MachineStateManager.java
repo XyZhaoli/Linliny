@@ -86,7 +86,7 @@ public class MachineStateManager {
 	}
 
 	public static void sendCmd() {
-		if(uartjni != null) {
+		if (uartjni != null) {
 			uartjni.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
 		}
 	}
@@ -111,17 +111,18 @@ public class MachineStateManager {
 					StringBuffer url = new StringBuffer("http://linliny.com/dingyifeng_web/AddFailure.json");
 					url.append("?Fcode=").append(machineState.getMachineStateCode()).append("&Fname=")
 							.append(machineState.getMachineMalfunctionCode()).append("&Fcontent=")
-							.append(parseMachineFaultCode).append("&Fresolve=暂无&Funwound=0&Mid=").append(Util.getMid());
+							.append(parseMachineFaultCode).append("&Fresolve=暂无&Funwound=0&Mid=").append(Util.getMid())
+							.append("&listPhone").append("13728625222");
 					httpUtils.send(HttpMethod.POST, url.toString(), new RequestCallBack<String>() {
 
 						@Override
 						public void onFailure(HttpException arg0, String arg1) {
-							
+
 						}
 
 						@Override
 						public void onSuccess(ResponseInfo<String> arg0) {
-							
+
 						}
 					});
 				}
@@ -131,8 +132,8 @@ public class MachineStateManager {
 
 	private String parseMachineFaultCode(int machineMalfunctionCode) {
 		/**
-		 * 0X01:定位故障(主电机或位置光电开关故障)； 0X02:开门故障； 0X03:关门故障； 0X04:防夹传感器故障；
-		 * 0X05:制冷故障； 0X06:加湿故障（缺水或长期湿度达不到设定值）； 0X07:其他故障； 0X08:主电机故障。
+		 * 0X01:定位故障(主电机或位置光电开关故障)； 0X02:开门故障； 0X03:关门故障； 0X04:防夹传感器故障； 0X05:制冷故障；
+		 * 0X06:加湿故障（缺水或长期湿度达不到设定值）； 0X07:其他故障； 0X08:主电机故障。
 		 */
 		String faultCodeStr = "";
 		switch (machineMalfunctionCode) {

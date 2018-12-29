@@ -11,7 +11,7 @@
     <view.BannerLayout
         android:id="@+id/banner_in_getgoods"
         android:layout_width="match_parent"
-        android:layout_height="600dp"
+        android:layout_height="700dp"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         app:indicatorMargin="10dp"

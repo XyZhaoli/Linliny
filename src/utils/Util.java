@@ -53,6 +53,51 @@ public class Util {
 		}
 		return mid;
 	}
+	
+	public static String parseMachineStateCode(int machineStateCode) {
+		String faultCodeStr = "";
+		/**
+		 * 0X01:待机状态； 0X02:待机转动状态； 0X03:正在定位； 0X04:正在开门； 0X05:等待取物状态； 0X06:正在关门；
+		 * 0X07:补货状态； 0X08:测试动作状态； 0X09:故障状态。 0X10:还篮子状态。
+		 * 
+		 */
+		switch (machineStateCode) {
+		case 0X01:
+			faultCodeStr = "待机状态";
+			break;
+		case 0X02:
+			faultCodeStr = "待机转动状态";
+			break;
+		case 0X03:
+			faultCodeStr = "正在定位";
+			break;
+		case 0X04:
+			faultCodeStr = "正在开门";
+			break;
+		case 0X05:
+			faultCodeStr = "等待取物状态";
+			break;
+		case 0X06:
+			faultCodeStr = "正在关门";
+			break;
+		case 0X07:
+			faultCodeStr = "补货状态";
+			break;
+		case 0X08:
+			faultCodeStr = "测试动作状态";
+			break;
+		case 0X09:
+			faultCodeStr = "故障状态";
+			break;
+		case 0X10:
+			faultCodeStr = "还篮子状态";
+			break;
+		default:
+			faultCodeStr = "查询失败";
+			break;
+		}
+		return faultCodeStr;
+	}
 
 	public static void checkSoftVersion(final boolean isAlone) {
 		HttpUtils httpUtils = new HttpUtils();
