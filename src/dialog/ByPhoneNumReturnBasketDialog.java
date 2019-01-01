@@ -29,6 +29,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputType;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -172,8 +173,8 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				// 5.开门以后，关门验证，验证篮子是否已经到位，到位以后发送服务器告知目前已经还篮子成功；
 				switch (cmd[2]) {
 				case 0:
-					// TODO 此时表示发送还篮子命令成功  2018/12/20 还是将这里的检查还篮子情况移动到 我们一发送还篮子命令后，就开始检查还篮子成功与否的情况
-					//sendGetMachineBasketCodeCmd();
+					// TODO 此时表示发送还篮子命令成功 2018/12/20 还是将这里的检查还篮子情况移动到 我们一发送还篮子命令后，就开始检查还篮子成功与否的情况
+					// sendGetMachineBasketCodeCmd();
 					break;
 
 				case (byte) 0xff:
@@ -220,11 +221,17 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					if (!TextUtils.isEmpty(basketCode.toString())) {
+						//如果basketCode不为空的话，说明是用户多次感应篮子的结果
 						int length = basketCode.length();
 						basketCode.delete(0, length);
-					} else {
+					} else if(gid >= 1 && gid <= 16){
+						//如果是用户第一次感应篮子,我们提示用户开门，发送还篮子命令，还篮子命令不能发送多次
 						str2Voice("感应成功，请等候开门");
 						sendReturnBasketCmd();
+					} else if(gid == -1) {
+						str2Voice("请您先前往商城注册会员");
+					} else if (gid == 0) {
+						str2Voice("机器格子不足,请您稍后再来");
 					}
 					basketCode = basketCode.append(serialCode);
 				} else {
@@ -302,18 +309,15 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				}
 				// 延时100毫秒
 				Util.delay(100);
-				String baseketLocation = "0E-" + gid;
-				String[] rowAndColumnStr = baseketLocation.split("-");
-				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt(rowAndColumnStr[0], 16),
-						Integer.parseInt(rowAndColumnStr[1]));
+				GoodsPosition basketPosition = new GoodsPosition(Integer.parseInt("0E", 16), gid);
 				byte[] returnBasketCmd = CommandPackage.getRequestShipment(ConstantCmd.get_return_basket_cmd,
 						basketPosition.getRowNum(), basketPosition.getColumnNum());
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
-				//将检查还篮子成功与否，放在这里，防止出现通信失败的问题出现（check error）
+				// 将检查还篮子成功与否，放在这里，防止出现通信失败的问题出现（check error）
 				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
 				while (!isComplteWork) {
 					Util.delay(500);
-					if(mUartNative == null) {
+					if (mUartNative == null) {
 						return;
 					}
 					mUartNative.UartWriteCmd(cmd, cmd.length);
@@ -537,7 +541,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 	}
 
 	protected void parseMachineBasketCmd(byte[] cmd) {
-		if(isComplteWork) {
+		if (isComplteWork) {
 			return;
 		}
 		if ((cmd[3] & 0xff) == 0xFF) {

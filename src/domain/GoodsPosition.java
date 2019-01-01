@@ -38,7 +38,6 @@ public class GoodsPosition {
 	}
 
 	public GoodsPosition(int rowNum, int columnNum) {
-		super();
 		this.rowNum = rowNum;
 		this.columnNum = columnNum;
 	}
