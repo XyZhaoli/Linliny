@@ -66,9 +66,11 @@ public class ShoppingCarActivity extends BaseActivity implements AdapterView.OnI
 
 	public void parseResponse(Object obj) {
 		PayforResponse response = (PayforResponse) obj;
-		checkOutDialog = new CheckOutDialog(mContext, R.style.MyDialogStyle, response,
-				ccard.toString(), String.valueOf(goodsTotalPrice.toString()), wechatArgu.toString());
-		Util.showCustomDialog(checkOutDialog, (Activity) mContext);
+		if(checkOutDialog == null) {
+			checkOutDialog = new CheckOutDialog(mContext, R.style.MyDialogStyle, response,
+					ccard.toString(), String.valueOf(goodsTotalPrice.toString()), wechatArgu.toString());
+			Util.showCustomDialog(checkOutDialog, (Activity) mContext);
+		}
 	}
 
 	// 订单信息表

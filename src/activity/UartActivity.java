@@ -3,6 +3,7 @@ package activity;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -387,10 +388,11 @@ public class UartActivity extends Activity implements View.OnClickListener {
 									String url = "http://linliny.com/dingyifeng_web/updateGridState.json?mid="
 											+ Util.getMid();
 									HttpUtils httpUtils = new HttpUtils();
-									httpUtils.send(HttpMethod.POST, url, new RequestCallBack<String>() {
+									httpUtils.configCurrentHttpCacheExpiry(0);
+									httpUtils.send(HttpMethod.GET, url, new RequestCallBack<String>() {
 										@Override
 										public void onFailure(HttpException arg0, String arg1) {
-
+											showAlertDialog("清空篮子失败,请重试");
 										}
 
 										@Override
@@ -400,9 +402,9 @@ public class UartActivity extends Activity implements View.OnClickListener {
 												public void run() {
 													int res = Util.parseJson(arg0.result, "checkGrid");
 													if (res == 1) {
-														showAlertDialog("晴空篮子成功");
-													} else if (res == 0) {
-														showAlertDialog("晴空篮子失败，机器格子未满");
+														showAlertDialog("清空篮子成功");
+													} else if(res == 0){
+														showAlertDialog("清空篮子失败,机器格子未满");
 													}
 												}
 											});

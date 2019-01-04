@@ -143,7 +143,7 @@ public class IuMainActivity extends BaseActivity implements View.OnClickListener
 				@Override
 				public void run() {
 					res = new ArrayList<Integer>();
-					res.add(R.drawable.viewpage_1);
+					res.add(R.drawable.viewpage_4);
 					res.add(R.drawable.viewpage_2);
 					res.add(R.drawable.viewpage_3);
 					titles = new ArrayList<String>();
@@ -301,7 +301,7 @@ public class IuMainActivity extends BaseActivity implements View.OnClickListener
 	public void showRemindDialog(boolean isSkip) {
 		View view = View.inflate(mContext, R.layout.remind_scan_code_dialog, null);
 		TextView tvTitle = (TextView) view.findViewById(R.id.tv_title);
-		tvTitle.setText("机器维护，暂停服务");
+		tvTitle.setText("机器正在升级...,请稍后再来");
 		ImageView ivIcon = (ImageView) view.findViewById(R.id.iv_code);
 		view.findViewById(R.id.bt_ok_membership_pay_dialog).setVisibility(View.INVISIBLE);
 		view.findViewById(R.id.bt_cancel_membership_pay_dialog).setVisibility(View.INVISIBLE);

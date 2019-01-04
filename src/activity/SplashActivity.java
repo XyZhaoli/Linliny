@@ -45,7 +45,7 @@ public class SplashActivity extends Activity {
 		tvMachineState = (TextView) findViewById(R.id.tv_machine_state);
 		tvMachineState.setVisibility(View.INVISIBLE);
 		mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-		Glide.with(SplashActivity.this).load(R.drawable.splash_1).into(mImageView);
+		Glide.with(SplashActivity.this).load(R.drawable.splash_4).into(mImageView);
 		// 清除购物车内容
 		dataSave = new ListDataSave(this, "shoppingCart");
 		dataSave.ListSave();
@@ -117,7 +117,7 @@ public class SplashActivity extends Activity {
 		public void onReceive(Context context, Intent intent) {
 			tvMachineState.setVisibility(View.INVISIBLE);
 			mImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-			Glide.with(SplashActivity.this).load(R.drawable.splash_1).into(mImageView);
+			Glide.with(SplashActivity.this).load(R.drawable.splash_4).into(mImageView);
 		}
 	}
 

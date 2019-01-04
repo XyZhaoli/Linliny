@@ -38,7 +38,7 @@ public class BasketMainActitvty extends BaseActivity implements OnClickListener 
 		tvTitle.setText(title);
 		final BannerLayout bannerLayout1 = (BannerLayout) findViewById(R.id.banner_in_getgoods);
 		final List<Integer> res = new ArrayList<Integer>();
-		res.add(R.drawable.viewpage_1);
+		res.add(R.drawable.viewpage_4);
 		res.add(R.drawable.viewpage_2);
 		res.add(R.drawable.viewpage_3);
 		final List<String> titles = new ArrayList<String>();

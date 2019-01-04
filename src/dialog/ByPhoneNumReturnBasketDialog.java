@@ -15,6 +15,7 @@ import com.lidroid.xutils.http.client.HttpRequest.HttpMethod;
 import com.orhanobut.logger.Logger;
 
 import activity.BaseActivity;
+import activity.BasketMainActitvty;
 import activity.SplashActivity;
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -83,6 +84,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	private SoundPool soundPool; // 播放声音是使用的声音池
 	private HashMap<Integer, Integer> spMap;
+	
+	//记录发送查询还篮子命令的次数，如果用户一开始查询就得到上一次未读到的还篮子成功的命令，那么不认为此次还篮子是成功的;
+	private static int sendReturnBasketCmdCount = 0;
+	
 
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
@@ -168,7 +173,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			@Override
 			public void onNativeCallback(final byte[] cmd) {
 				if (mContext != null) {
-					((BaseActivity) mContext).setTime(120);
+					((BasketMainActitvty) mContext).setTime(120);
 				}
 				// 5.开门以后，关门验证，验证篮子是否已经到位，到位以后发送服务器告知目前已经还篮子成功；
 				switch (cmd[2]) {
@@ -259,8 +264,10 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				break;
 			case RETURN_BASKET_SUCCESS:
 				// TODO 还篮子成功以后 通知服务器退款
-				isComplteWork = true;
-				returnBasketMoney();
+				if(sendReturnBasketCmdCount > 10) {
+					isComplteWork = true;
+					returnBasketMoney();
+				}
 				break;
 
 			default:
@@ -315,8 +322,13 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				mUartNative.UartWriteCmd(returnBasketCmd, returnBasketCmd.length);
 				// 将检查还篮子成功与否，放在这里，防止出现通信失败的问题出现（check error）
 				byte[] cmd = new byte[] { 0x02, 0x03, 0x71, 0x76 };
+				sendReturnBasketCmdCount = 0;
 				while (!isComplteWork) {
 					Util.delay(500);
+					sendReturnBasketCmdCount++;
+					if(sendReturnBasketCmdCount > 300) {
+						break;
+					}
 					if (mUartNative == null) {
 						return;
 					}

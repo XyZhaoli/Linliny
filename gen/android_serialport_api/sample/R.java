@@ -291,7 +291,7 @@ containing a value of this type.
         public static final int shopping_bigcar=0x7f020056;
         public static final int shoppingcart1=0x7f020057;
         public static final int shoppingg=0x7f020058;
-        public static final int splash_1=0x7f020059;
+        public static final int splash_4=0x7f020059;
         public static final int splash_image_switch_anim=0x7f02005a;
         public static final int take_goods_home=0x7f02005b;
         public static final int text_huitou=0x7f02005c;
@@ -303,9 +303,9 @@ containing a value of this type.
         public static final int tp_shape=0x7f020062;
         public static final int tup_details=0x7f020063;
         public static final int up_or_down=0x7f020064;
-        public static final int viewpage_1=0x7f020065;
-        public static final int viewpage_2=0x7f020066;
-        public static final int viewpage_3=0x7f020067;
+        public static final int viewpage_2=0x7f020065;
+        public static final int viewpage_3=0x7f020066;
+        public static final int viewpage_4=0x7f020067;
         public static final int vip=0x7f020068;
         public static final int warning=0x7f020069;
         public static final int wechat_pay_icon=0x7f02006a;

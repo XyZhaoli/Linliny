@@ -330,9 +330,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的温度"
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_tem"
@@ -362,9 +362,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的湿度"
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_hum"
@@ -394,9 +394,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的参数"
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_rotate_time"
@@ -426,9 +426,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的参数"
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_local_param"
@@ -458,9 +458,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的参数"
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_param"
@@ -490,8 +490,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设置的脉冲数"
-                android:textSize="24sp" >
-            </EditText>
+                android:inputType="number"
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_pulse"
@@ -520,9 +520,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:hint="请输入设备号："
+                android:inputType="number"
                 android:textColor="#000"
-                android:textSize="24sp" >
-            </EditText>
+                android:textSize="24sp" />
 
             <Button
                 android:id="@+id/bt_setup_device_num"

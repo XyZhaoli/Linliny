@@ -287,7 +287,8 @@ public class LoaddingActivity extends BaseActivity {
 					cycleCount = 0;
 					while (true) {
 						mUartNative.UartWriteCmd(ConstantCmd.getMachineStateCmd, ConstantCmd.getMachineStateCmd.length);
-						if (shipmentCount == goodsPositions.size() && MachineSateCode.get() == 1) {
+						if (shipmentCount == goodsPositions.size()
+								&& (MachineSateCode.get() == 1 || MachineSateCode.get() == 2)) {
 							break;
 						}
 						if (cycleCount++ > 120) {
