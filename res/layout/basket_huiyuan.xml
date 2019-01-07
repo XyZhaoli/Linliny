@@ -29,6 +29,7 @@
             android:layout_width="400dp"
             android:layout_height="400dp"
             android:layout_margin="20dp"
+            android:src="@drawable/iv_linli_qr_code"
             android:scaleType="centerCrop" />
 
         <TextView

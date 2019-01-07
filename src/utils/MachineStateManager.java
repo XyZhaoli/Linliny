@@ -112,7 +112,7 @@ public class MachineStateManager {
 					url.append("?Fcode=").append(machineState.getMachineStateCode()).append("&Fname=")
 							.append(machineState.getMachineMalfunctionCode()).append("&Fcontent=")
 							.append(parseMachineFaultCode).append("&Fresolve=暂无&Funwound=0&Mid=").append(Util.getMid())
-							.append("&listPhone").append("13728625222");
+							.append("&listPhone=").append("13728625222");
 					httpUtils.send(HttpMethod.POST, url.toString(), new RequestCallBack<String>() {
 
 						@Override

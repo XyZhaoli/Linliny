@@ -50,15 +50,6 @@ public class LinliUrlQrDialog extends Dialog {
 				LinliUrlQrDialog.this.dismiss();
 			}
 		});
-		// 二维码
-		ThreadManager.getThreadPool().execute(new Runnable() {
-
-			@Override
-			public void run() {
-				Bitmap bmap = ZXingUtils.createQRImage("http://linliny.com/WeChatpn/index.html#/mall", 200, 200);
-				Util.sendMessage(handler, 1, bmap);
-			}
-		});
 	}
 
 }

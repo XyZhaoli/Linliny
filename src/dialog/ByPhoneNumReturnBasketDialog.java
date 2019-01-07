@@ -84,10 +84,9 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 
 	private SoundPool soundPool; // 播放声音是使用的声音池
 	private HashMap<Integer, Integer> spMap;
-	
-	//记录发送查询还篮子命令的次数，如果用户一开始查询就得到上一次未读到的还篮子成功的命令，那么不认为此次还篮子是成功的;
+
+	// 记录发送查询还篮子命令的次数，如果用户一开始查询就得到上一次未读到的还篮子成功的命令，那么不认为此次还篮子是成功的;
 	private static int sendReturnBasketCmdCount = 0;
-	
 
 	public ByPhoneNumReturnBasketDialog(Context context) {
 		super(context);
@@ -226,14 +225,14 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				if (response == 1) {
 					// 如果是我们的篮子，开始还篮子
 					if (!TextUtils.isEmpty(basketCode.toString())) {
-						//如果basketCode不为空的话，说明是用户多次感应篮子的结果
+						// 如果basketCode不为空的话，说明是用户多次感应篮子的结果
 						int length = basketCode.length();
 						basketCode.delete(0, length);
-					} else if(gid >= 1 && gid <= 16){
-						//如果是用户第一次感应篮子,我们提示用户开门，发送还篮子命令，还篮子命令不能发送多次
+					} else if (gid >= 1 && gid <= 16) {
+						// 如果是用户第一次感应篮子,我们提示用户开门，发送还篮子命令，还篮子命令不能发送多次
 						str2Voice("感应成功，请等候开门");
 						sendReturnBasketCmd();
-					} else if(gid == -1) {
+					} else if (gid == -1) {
 						str2Voice("请您先前往商城注册会员");
 					} else if (gid == 0) {
 						str2Voice("机器格子不足,请您稍后再来");
@@ -264,7 +263,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				break;
 			case RETURN_BASKET_SUCCESS:
 				// TODO 还篮子成功以后 通知服务器退款
-				if(sendReturnBasketCmdCount > 10) {
+				if (sendReturnBasketCmdCount > 10) {
 					isComplteWork = true;
 					returnBasketMoney();
 				}
@@ -326,7 +325,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				while (!isComplteWork) {
 					Util.delay(500);
 					sendReturnBasketCmdCount++;
-					if(sendReturnBasketCmdCount > 300) {
+					if (sendReturnBasketCmdCount > 300) {
 						break;
 					}
 					if (mUartNative == null) {
@@ -503,13 +502,6 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 				return false;
 			}
 		});
-	}
-
-	public static boolean isChinaPhoneLegal(String str) throws PatternSyntaxException {
-		String regExp = "^((13[0-9])|(15[^4])|(18[0-9])|(17[0-8])|(147,145))\\d{8}$";
-		Pattern p = Pattern.compile(regExp);
-		Matcher m = p.matcher(str);
-		return m.matches();
 	}
 
 	protected void parseMachineStateCode(byte cmd) {
@@ -791,7 +783,7 @@ public class ByPhoneNumReturnBasketDialog extends Dialog implements android.view
 			if (TextUtils.isEmpty(phoneNumStr)) {
 				str2Voice("请输入手机号");
 			} else {
-				if (!isChinaPhoneLegal(phoneNumStr)) {
+				if (phoneNumStr.trim().length() != 11) {
 					str2Voice("手机号格式输入错误，请重新输入");
 					myCourse_roomId_input.setText("");
 				} else {
